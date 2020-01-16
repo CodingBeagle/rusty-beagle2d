@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="f2177d06-fbbe-4083-82ba-b12c1f03d7f4" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="zVWvufUv" />
+  </component>
+  <component name="ProjectId" id="1WUheuLMvKRaYbQnsHkzb0VhA5n" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="settings.editor.selected.configurable" value="language.rust" />
+  </component>
+  <component name="RunManager" selected="Cargo Command.Run Engine">
+    <configuration name="Build Workspace" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="build" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run Engine" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="run --package rusty-beagle2d-engine" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Cargo Command.Build Workspace" />
+      <item itemvalue="Cargo Command.Run Engine" />
+    </list>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f2177d06-fbbe-4083-82ba-b12c1f03d7f4" name="Default Changelist" comment="" />
+      <created>1579210179450</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1579210179450</updated>
+      <workItem from="1579210181979" duration="854000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="-1546" y="465" key="#Build_Workspace" timestamp="1579210380264">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state x="-1546" y="465" key="#Build_Workspace/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210380264" />
+    <state x="-1506" y="399" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1579210465320">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state x="-1506" y="399" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210465320" />
+    <state x="-1180" y="499" key="FileChooserDialogImpl" timestamp="1579210463099">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state x="-1180" y="499" key="FileChooserDialogImpl/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210463099" />
+    <state width="1877" height="295" key="GridCell.Tab.0.bottom" timestamp="1579210950535">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state width="1877" height="295" key="GridCell.Tab.0.bottom/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210950535" />
+    <state width="1877" height="295" key="GridCell.Tab.0.center" timestamp="1579210950535">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state width="1877" height="295" key="GridCell.Tab.0.center/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210950535" />
+    <state width="1877" height="295" key="GridCell.Tab.0.left" timestamp="1579210950535">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state width="1877" height="295" key="GridCell.Tab.0.left/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210950535" />
+    <state width="1877" height="295" key="GridCell.Tab.0.right" timestamp="1579210950535">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state width="1877" height="295" key="GridCell.Tab.0.right/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210950535" />
+    <state width="1877" height="364" key="GridCell.Tab.1.bottom" timestamp="1579210948790">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state width="1877" height="364" key="GridCell.Tab.1.bottom/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210948790" />
+    <state width="1877" height="364" key="GridCell.Tab.1.center" timestamp="1579210948789">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state width="1877" height="364" key="GridCell.Tab.1.center/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210948789" />
+    <state width="1877" height="364" key="GridCell.Tab.1.left" timestamp="1579210948789">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state width="1877" height="364" key="GridCell.Tab.1.left/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210948789" />
+    <state width="1877" height="364" key="GridCell.Tab.1.right" timestamp="1579210948790">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state width="1877" height="364" key="GridCell.Tab.1.right/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210948790" />
+    <state x="-1459" y="386" key="SettingsEditor" timestamp="1579210407954">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state x="-1459" y="386" key="SettingsEditor/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210407954" />
+    <state x="-1264" y="568" key="com.intellij.ide.util.TipDialog" timestamp="1579210183111">
+      <screen x="-1920" y="203" width="1920" height="1080" />
+    </state>
+    <state x="-1264" y="568" key="com.intellij.ide.util.TipDialog/0.0.2560.1400/-1920.203.1920.1080@-1920.203.1920.1080" timestamp="1579210183111" />
+  </component>
+</project>

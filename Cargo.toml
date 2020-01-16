@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "rusty-beagle2d-engine",
+    "rusty-beagle2d-glfw",
+]

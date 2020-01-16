@@ -1,0 +1,8 @@
+[package]
+name = "rusty-beagle2d-engine"
+version = "0.1.0"
+authors = ["CodingBeagle"]
+edition = "2018"
+
+[dependencies]
+rusty-beagle2d-glfw = { path = "../rusty-beagle2d-glfw" }

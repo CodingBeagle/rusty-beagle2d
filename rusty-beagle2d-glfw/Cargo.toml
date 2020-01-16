@@ -1,0 +1,7 @@
+[package]
+name = "rusty-beagle2d-glfw"
+version = "0.1.0"
+authors = ["CodingBeagle"]
+edition = "2018"
+
+[dependencies]
