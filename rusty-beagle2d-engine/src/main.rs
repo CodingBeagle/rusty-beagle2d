@@ -1,6 +1,7 @@
-use rusty_beagle2d_glfw;
-
 fn main() {
-    let x = rusty_beagle2d_glfw::add_one(50);
-    println!("Hello There, let's check this adder! {}", x);
+    let mut hello_world = String::from("Hello, World! :D");
+    println!("My string is: {}", hello_world);
+
+    hello_world.push_str(" Extra Text!");
+    println!("Now the string is: {}", hello_world);
 }

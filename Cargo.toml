@@ -1,3 +1,6 @@
+# A Workspace is a collection of one or more packages that share common dependency resolution, output directory, and various settings such as profiles.
+# A Virtual Workspace - which we are defining here - is a workspace where the root Cargo.toml manifest does not define a package,
+# But instead only lists workspace members.
 [workspace]
 
 members = [

@@ -1,8 +1,9 @@
 [package]
 name = "rusty-beagle2d-glfw"
 version = "0.1.0"
-authors = ["CodingBeagle"]
+authors = ["CodingBeagle <kasper.rie@gmail.com>"]
 edition = "2018"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [dependencies]
-libc = "0.2"

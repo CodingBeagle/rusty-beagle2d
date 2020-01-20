@@ -1,2 +1,0 @@
-# rusty-beagle2d
-

@@ -1,3 +1,3 @@
-pub fn add_one(x: i32) -> i32 {
+pub fn add_one(x: u32) -> u32 {
     x + 1
 }
