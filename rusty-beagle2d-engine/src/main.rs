@@ -1,7 +1,14 @@
-fn main() {
-    let mut hello_world = String::from("Hello, World! :D");
-    println!("My string is: {}", hello_world);
+use rusty_beagle2d_glfw;
 
-    hello_world.push_str(" Extra Text!");
-    println!("Now the string is: {}", hello_world);
+fn main() {
+    println!("Hello, World! :D");
+    let lol = 1;
+    
+    let init_result = rusty_beagle2d_glfw::glfw_init();
+    /*
+    let lol = init_result;
+    println!("{}", init_result);*/
+
+    println!("BLA");
+    //println!("LOL {}", init_result);
 }
