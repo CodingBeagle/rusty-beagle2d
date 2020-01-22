@@ -1,7 +1,7 @@
 extern crate libc;
 use libc::c_int;
 
-#[link(name = "glfw3", kind="dylib")]
+#[link(name = "glfw3-x64-debug", kind="dylib")]
 extern {
     fn glfwInit() -> c_int;
 }

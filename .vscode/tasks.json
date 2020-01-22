@@ -4,15 +4,44 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Move Libraries",
+            "type": "shell",
+            "problemMatcher": [],
+            "command": "./building/copy-libraries.ps1",
+            "args": [
+                "-WorkspaceRoot",
+                "${workspaceRoot}",
+                "-Destination",
+                "${workspaceRoot}\\target\\debug"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel":"shared",
+                "showReuseMessage": true,
+                "clear": true
+            },
+        },
+        {
+            "label": "build",
             "type": "cargo",
             "subcommand": "build",
             "problemMatcher": [
                 "$rustc"
-            ],
+            ]
+        },
+        {
+            "label": "Full Build",
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "dependsOn": [
+                "Move Libraries",
+                "build"
+            ],
+            "dependsOrder": "sequence"
         }
     ]
 }

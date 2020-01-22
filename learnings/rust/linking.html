@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Dynamic Library (DLL) Linking</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="dynamic-library-dll-linking">Dynamic Library (DLL) Linking</h1>
+<p>There are multiple ways to link to a DLL.</p>
+<p>It can be done:</p>
+<ul>
+<li>Implicitly at link time.
+<ul>
+<li>Here, the functions off the DLL is linked implicitly to the EXE at link time.</li>
+</ul>
+</li>
+<li>Explicitly at run time.
+<ul>
+<li>Here you use functions in the programming language to load the DLL into memory, and then use a function to get memory addresses for named functions you need to invoke.</li>
+</ul>
+</li>
+</ul>
+<h2 id="more-on-implicit-linking">More on Implicit Linking</h2>
+<p>If you link to a DLL implicitly, you need both the .DLL and what is known as an &quot;import library&quot; (in .LIB format). The import library is linked with at link time. <em>Stubs</em> for each exported symbol of the DLL gets linked to the program.</p>
+
+    </body>
+    </html>
