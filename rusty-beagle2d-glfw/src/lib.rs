@@ -132,8 +132,16 @@ pub fn glfw_create_window(width: i32, height: i32, title: String, monitor: Optio
 
 // TODO: Figure out how to split this module out into separate file in this crate
 pub mod ogl {
+    // type GLenum = c_uint;
+    // type GLuint = c_uint;
+    // type c_uint = u32;
+
     pub enum ClearMask {
         ColorBufferBit
+    }
+
+    pub enum BufferTarget {
+        ArrayBuffer
     }
 
     pub fn init() {
@@ -155,6 +163,27 @@ pub mod ogl {
     pub fn clear_color(red: f32, green: f32, blue: f32, alpha: f32) {
         unsafe {
             gl::ClearColor(red, green, blue, alpha);
+        }
+    }
+
+    pub fn gl_gen_buffers(n: i32, buffers: &mut [u32]) {
+        // TODO: Should do safety check to make sure n = buffers length
+        unsafe {
+            match buffers.first_mut() {
+                None => panic!("No elements!"),
+                Some(x) => gl::GenBuffers(n, x),
+            }
+        }
+    }
+
+    pub fn gl_bind_buffer(target: BufferTarget, buffer: u32) {
+        unsafe {
+            gl::BindBuffer(
+                match target {
+                    BufferTarget::ArrayBuffer => gl::ARRAY_BUFFER
+                },
+                buffer
+            );
         }
     }
 }
