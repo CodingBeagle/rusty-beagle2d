@@ -98,9 +98,6 @@ pub fn glfw_make_context_current(window: &Window) {
     }
 }
 
-// TODO: Jesus read this https://stackoverflow.com/questions/24145823/how-do-i-convert-a-c-string-into-a-rust-string-and-back-via-ffi
-// TODO: Is there any way NOT to use mutable references in the safe wrapper? I would have to convert immutable reference to mutable C pointer type somehow.
-// TODO: Seriously need to read up on lifetimes here: https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html
 // TODO: Read up on Options: https://doc.rust-lang.org/std/option/
 // TODO: Remember to read up on CString some more here: https://doc.rust-lang.org/std/ffi/struct.CString.html
 // TODO: Maybe return some type of result object here? With either a window, or an error in case something went wrong!
