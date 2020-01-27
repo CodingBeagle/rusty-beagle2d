@@ -137,6 +137,7 @@ pub mod ogl {
     }
 
     pub fn init() {
+        // TODO: Read up on this funky syntax
         gl::load_with(|s| crate::glfw_get_proc_address(s));
     }
 
