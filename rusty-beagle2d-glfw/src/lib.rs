@@ -1,9 +1,11 @@
 extern crate libc;
 use libc::c_int;
 use libc::c_char;
+use libc::c_void;
 use std::ffi::CString;
 use std::ptr;
 
+// TODO: Read up on repr(C) meaning
 #[repr(C)] pub struct GLFWmonitor { _private: [u8; 0] }
 #[repr(C)] pub struct GLFWwindow { _private: [u8; 0] }
 
@@ -39,7 +41,24 @@ extern {
 
     fn glfwWindowShouldClose(window: *mut GLFWwindow) -> c_int;
 
+    fn glfwMakeContextCurrent(window: *mut GLFWwindow);
+
+    fn glfwSwapBuffers(window: *mut GLFWwindow);
+
+    fn glfwGetProcAddress(procname: *const c_char) -> *const c_void;
+
+    fn glfwTerminate();
+
     fn glfwPollEvents();
+}
+
+pub fn glfw_get_proc_address(procname: &'static str) -> *const c_void {
+    // TODO: Is this c string lifetime right?
+    let title_c_string =  CString::new(procname).expect("Failed to create title string!");
+
+    unsafe {
+        glfwGetProcAddress(title_c_string.as_ptr()) as *const c_void
+    }
 }
 
 pub fn glfw_poll_events() {
@@ -54,9 +73,27 @@ pub fn glfw_init() -> bool {
     }
 }
 
+pub fn glfw_terminate() {
+    unsafe {
+        glfwTerminate();
+    }
+}
+
+pub fn glfw_swap_buffers(window: &Window) {
+    unsafe {
+        glfwSwapBuffers(window.window_ptr);
+    }
+}
+
 pub fn glfw_window_should_close(window: &Window) -> bool {
     unsafe {
         glfwWindowShouldClose(window.window_ptr) == 1
+    }
+}
+
+pub fn glfw_make_context_current(window: &Window) {
+    unsafe {
+        glfwMakeContextCurrent(window.window_ptr);
     }
 }
 
@@ -93,4 +130,32 @@ pub fn glfw_create_window(width: i32, height: i32, title: String, monitor: Optio
     };
 
     Some(created_window)
+}
+
+// TODO: Figure out how to split this module out into separate file in this crate
+pub mod ogl {
+    pub enum ClearMask {
+        ColorBufferBit
+    }
+
+    pub fn init() {
+        gl::load_with(|s| crate::glfw_get_proc_address(s));
+    }
+
+    pub fn clear(mask: ClearMask) {
+        // TODO: Maybe I don't need match for this... (could just assign value in enum definition)
+        let mask = match mask {
+            ClearMask::ColorBufferBit => gl::COLOR_BUFFER_BIT
+        };
+
+        unsafe {
+            gl::Clear(mask);
+        }
+    }
+
+    pub fn clear_color(red: f32, green: f32, blue: f32, alpha: f32) {
+        unsafe {
+            gl::ClearColor(red, green, blue, alpha);
+        }
+    }
 }
