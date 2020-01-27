@@ -17,7 +17,12 @@ fn main() {
     ogl::init();
 
     while !rusty_beagle2d_glfw::glfw_window_should_close(&main_window) {
-        ogl::clear_color(1.0, 0.0, 0.0, 1.0);
+        ogl::clear_color(
+            100.0 / 255.0, 
+            149.0 / 255.0, 
+            237.0 / 255.0, 
+            1.0);
+
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
         rusty_beagle2d_glfw::glfw_swap_buffers(&main_window);

@@ -45,6 +45,7 @@ extern {
 
     fn glfwSwapBuffers(window: *mut GLFWwindow);
 
+    // TODO: Is this really correct way to return function pointer?
     fn glfwGetProcAddress(procname: *const c_char) -> *const c_void;
 
     fn glfwTerminate();
