@@ -16,6 +16,13 @@ fn main() {
 
     let window_title = String::from("Rusyt Beagle! :D");
 
+    // TODO: yeah.. this enum casting ain't great son
+    rusty_beagle2d_glfw::glfw_window_hint(rusty_beagle2d_glfw::WindowHint::Resizable, rusty_beagle2d_glfw::GlfwBool::False as i32);
+    rusty_beagle2d_glfw::glfw_window_hint(rusty_beagle2d_glfw::WindowHint::OpenGlProfile, rusty_beagle2d_glfw::OpenGlProfile::CoreProfile as i32);
+    rusty_beagle2d_glfw::glfw_window_hint(rusty_beagle2d_glfw::WindowHint::ContextVersionMajor, 3);
+    rusty_beagle2d_glfw::glfw_window_hint(rusty_beagle2d_glfw::WindowHint::ContextVersionMinor, 2);
+    rusty_beagle2d_glfw::glfw_window_hint(rusty_beagle2d_glfw::WindowHint::OpenGlDebugContext, rusty_beagle2d_glfw::GlfwBool::True as i32);
+
     let main_window = rusty_beagle2d_glfw::glfw_create_window(800, 600, window_title, None, None).unwrap();
 
     rusty_beagle2d_glfw::glfw_make_context_current(&main_window);
@@ -27,6 +34,12 @@ fn main() {
     ogl::gl_gen_buffers(1, &mut vertex_buffer);
 
     ogl::gl_bind_buffer(ogl::BufferTarget::ArrayBuffer, vertex_buffer[0]);
+
+    println!("{}", ogl::gl_get_string(ogl::Name::RENDERER));
+    println!("{}", ogl::gl_get_string(ogl::Name::VERSION));
+
+    ogl::gl_enable(ogl::Capability::DebugOutput);
+    ogl::gl_debug_message_callback(openg_debug_callback);
 
     while !rusty_beagle2d_glfw::glfw_window_should_close(&main_window) {
         ogl::clear_color(
@@ -43,4 +56,8 @@ fn main() {
     }
 
     rusty_beagle2d_glfw::glfw_terminate();
+}
+
+fn openg_debug_callback(source: u32, gltype: u32, id: u32, severity: u32, length: i32, message: String) {
+    println!("We received an OpenGL Error: {}", message);
 }
