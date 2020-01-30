@@ -167,6 +167,7 @@ pub mod ogl {
     use std::ptr;
     use gl;
     use std::ffi::CStr;
+    use std::mem;
 
     // type GLenum = c_uint;
     // type GLuint = c_uint;
@@ -193,6 +194,10 @@ pub mod ogl {
 
     pub enum Capability {
         DebugOutput
+    }
+
+    pub enum Usage {
+        StaticDraw
     }
 
     pub fn init() {
@@ -236,6 +241,24 @@ pub mod ogl {
                 },
                 buffer
             );
+        }
+    }
+
+    // TODO: Gotta find a way to not pass mutable reference...
+    pub fn BufferData<T>(target: BufferTarget, data: &mut Vec<T>, usage: Usage) {
+        let typeSize = mem::size_of::<T>() * data.len();
+
+        unsafe {
+            gl::BufferData(
+                match target {
+                    BufferTarget::ArrayBuffer => gl::ARRAY_BUFFER
+                },
+                typeSize as isize, // TODO: Gotta read up on "as" conversion... also, is it even safe to go from usize to isize? I suppose right??
+                data.as_mut_ptr() as *const c_void,
+                match usage {
+                    Usage::StaticDraw => gl::STATIC_DRAW
+                }
+            )
         }
     }
 
