@@ -4,6 +4,15 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Check",
+            "type": "shell",
+            "command": "cargo check",
+            "group": "test",
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
             "label": "Move Libraries",
             "type": "shell",
             "problemMatcher": [],
@@ -25,8 +34,8 @@
         },
         {
             "label": "build",
-            "type": "cargo",
-            "subcommand": "build",
+            "type": "shell",
+            "command": "cargo build",
             "problemMatcher": [
                 "$rustc"
             ]

@@ -1,11 +1,9 @@
 use rusty_beagle2d_glfw;
 use rusty_beagle2d_glfw::ogl;
 use std::fs;
-use std::mem;
-use std::ptr;
 
 fn main() {
-    let mut vertices: Vec<f32> = vec![
+    let mut vertices = vec![
         -0.5, -0.5, 0.0,
          0.5, -0.5, 0.0,
          0.0,  0.5, 0.0
@@ -39,24 +37,13 @@ fn main() {
     ogl::gl_enable(ogl::Capability::DebugOutput);
     ogl::gl_debug_message_callback(openg_debug_callback);
 
-    let vao = ogl::gen_vertex_array();
-    ogl::bind_vertex_array(vao);
-
     // TODO: Could make a helper method that just returns a single int... would make it much easier.
     let mut vertex_buffer: [u32;1] = [0];
     ogl::gl_gen_buffers(1, &mut vertex_buffer);
 
     ogl::gl_bind_buffer(ogl::BufferTarget::ArrayBuffer, vertex_buffer[0]);
+
     ogl::BufferData(ogl::BufferTarget::ArrayBuffer, &mut vertices, ogl::Usage::StaticDraw);
-
-    ogl::vertex_attrib_pointer_no_offset(
-        0, 
-        3, 
-        ogl::DataType::Float,
-         false, 
-         mem::size_of::<f32>() as i32 * 3);
-
-    ogl::enable_vertex_attrib_array(0);
 
     // Shader compilation
     let vertexShaderCode = fs::read_to_string("dat\\shaders\\vertex.shader").unwrap();
@@ -67,41 +54,9 @@ fn main() {
 
     let vertex_shader_compilation_result = ogl::get_shader(vertexShader, ogl::Parameter::CompileStatus);
 
-    if vertex_shader_compilation_result != 1 {
-        let compilationReport = ogl::get_shader_info_log(vertexShader);
-
-        println!("{}", compilationReport);
-        panic!("Failed to compile vertex shader!");
+    if (vertex_shader_compilation_result != 1) {
+        
     }
-
-    let fragment_shader_code = fs::read_to_string("dat\\shaders\\fragment.shader").unwrap();
-
-    let fragment_shader = ogl::create_shader(ogl::ShaderType::Fragment);
-    ogl::shader_source(fragment_shader, 1, &vec![&fragment_shader_code]);
-    ogl::compile_shader(fragment_shader);
-
-    if ogl::get_shader(fragment_shader, ogl::Parameter::CompileStatus) != 1 {
-        panic!("Failed to compile fragment shader! {}", ogl::get_shader_info_log(fragment_shader));
-    }
-
-    let shader_program = ogl::create_program();
-
-    ogl::attach_shader(shader_program, vertexShader);   
-    ogl::attach_shader(shader_program, fragment_shader);
-
-    ogl::link_program(shader_program);
-
-    let link_status = ogl::get_programiv(shader_program, ogl::ProgramParameter::LinkStatus);
-
-    if link_status != 1 {
-        panic!("Failed to link shader program! {}", ogl::get_program_info_log(shader_program));
-    }
-
-    // Shader cleanup
-    ogl::delete_shader(vertexShader);
-    ogl::delete_shader(fragment_shader);
-
-    ogl::use_program(shader_program);
 
     while !rusty_beagle2d_glfw::glfw_window_should_close(&main_window) {
         ogl::clear_color(
@@ -112,9 +67,8 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
-        ogl::draw_arrays(ogl::DrawMode::Triangles, 0, 3);
-
         rusty_beagle2d_glfw::glfw_swap_buffers(&main_window);
+
         rusty_beagle2d_glfw::glfw_poll_events();
     }
 
