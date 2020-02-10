@@ -239,10 +239,66 @@ pub mod ogl {
         Triangles
     }
 
+    pub enum TextureTarget {
+        Texture2d
+    }
+
     pub fn init() {
         // Load OpenGL functions
         // TODO: Read up on this funky syntax
         gl::load_with(|s| crate::glfw_get_proc_address(s));
+    }
+
+    pub fn tex_parameteri(textureTarget: TextureTarget, parameterName: u32, param: i32) {
+        unsafe {
+            gl::TexParameteri(match textureTarget {
+                TextureTarget::Texture2d => gl::TEXTURE_2D,
+            },
+            parameterName,
+            param);
+        }
+    }
+
+    pub fn generate_mipmap(textureTarget: TextureTarget) {
+        unsafe {
+            gl::GenerateMipmap(match textureTarget {
+                TextureTarget::Texture2d => gl::TEXTURE_2D
+            })
+        }
+    }
+
+    pub fn tex_image_2d<T>(textureTarget: TextureTarget, level: i32, internalFormat: i32, width: i32, height: i32, border: i32, format: u32, type_: u32, pixels: Vec<T>) {
+        unsafe {
+            gl::TexImage2D(match textureTarget {
+                TextureTarget::Texture2d => gl::TEXTURE_2D,
+            },
+            level,
+            internalFormat,
+            width,
+            height,
+            border,
+            format,
+            type_,
+            pixels.as_ptr() as *const c_void);
+        }
+    }
+
+    pub fn gen_texture() -> u32 {
+        let mut texture_object: u32 = 0;
+
+        unsafe {
+            gl::GenTextures(1, &mut texture_object);
+            texture_object
+        }
+    }
+
+    pub fn bind_texture(textureTarget: TextureTarget, texture: u32) {
+        unsafe {
+            gl::BindTexture(match textureTarget {
+                TextureTarget::Texture2d => gl::TEXTURE_2D
+            },
+            texture);
+        }
     }
 
     pub fn draw_elements(drawMode: DrawMode, count: i32, dataType: ElementsDataType) {

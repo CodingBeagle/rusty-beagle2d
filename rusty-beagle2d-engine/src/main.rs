@@ -2,6 +2,8 @@ use rusty_beagle2d_glfw;
 use rusty_beagle2d_glfw::ogl;
 use std::fs;
 use std::mem;
+use std::path::Path;
+use stb_image::image;
 
 fn main() {
     let mut vertices: Vec<f32> = vec![
@@ -115,6 +117,30 @@ fn main() {
 
     ogl::use_program(shader_program);
 
+    // Image Loading
+    let imagePath = Path::new("dat/textures/beagle.jpg");
+    let loadResult = image::load(imagePath);
+
+    let imageData: image::Image::<u8>;
+
+    match loadResult {
+        image::LoadResult::Error(message) => println!("Failed to load image: {}", message),
+        image::LoadResult::ImageU8(imageu8) => {
+            println!("Image width: {}", imageu8.width);
+            println!("Image height: {}", imageu8.height);
+            println!("Image depth: {}", imageu8.depth);
+            imageData = imageu8;
+        },
+        image::LoadResult::ImageF32(imagef32) => println!("Loaded image f32!"),
+    }
+
+    let texture_object = ogl::gen_texture();
+    ogl::bind_texture(ogl::TextureTarget::Texture2d, texture_object);
+
+    ogl::generate_mipmap(ogl::TextureTarget::Texture2d);
+
+
+
     while !rusty_beagle2d_glfw::glfw_window_should_close(&main_window) {
         ogl::clear_color(
             100.0 / 255.0, 
@@ -123,7 +149,7 @@ fn main() {
             1.0);
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
-        
+
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
 
         rusty_beagle2d_glfw::glfw_swap_buffers(&main_window);

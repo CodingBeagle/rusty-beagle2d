@@ -1,2 +1,5 @@
+# Asset Data
+*.jpg
+
 /target
 *.lock
