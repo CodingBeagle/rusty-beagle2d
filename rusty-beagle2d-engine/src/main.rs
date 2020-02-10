@@ -2,13 +2,18 @@ use rusty_beagle2d_glfw;
 use rusty_beagle2d_glfw::ogl;
 use std::fs;
 use std::mem;
-use std::ptr;
 
 fn main() {
     let mut vertices: Vec<f32> = vec![
-        -0.5, -0.5, 0.0,
-         0.5, -0.5, 0.0,
-         0.0,  0.5, 0.0
+         0.5,  0.5, 0.0, // Top Right
+         0.5, -0.5, 0.0, // Bottom Right
+        -0.5, -0.5, 0.0, // Bottom Left
+        -0.5,  0.5, 0.0 // Top Left
+    ];
+
+    let mut indices: Vec<u32> = vec![
+        0, 1, 3, // First Triangle
+        1, 2, 3  // Second Triangle
     ];
 
     let init_result = rusty_beagle2d_glfw::glfw_init();
@@ -39,8 +44,15 @@ fn main() {
     ogl::gl_enable(ogl::Capability::DebugOutput);
     ogl::gl_debug_message_callback(openg_debug_callback);
 
+    // Bind VAO
     let vao = ogl::gen_vertex_array();
     ogl::bind_vertex_array(vao);
+
+    // Bind indice buffer
+    let ebo = ogl::gl_gen_buffer();
+
+    ogl::gl_bind_buffer(ogl::BufferTarget::ElementArrayBuffer, ebo);
+    ogl::BufferData(ogl::BufferTarget::ElementArrayBuffer, &mut indices, ogl::Usage::StaticDraw);
 
     // TODO: Could make a helper method that just returns a single int... would make it much easier.
     let mut vertex_buffer: [u32;1] = [0];
@@ -111,8 +123,8 @@ fn main() {
             1.0);
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
-
-        ogl::draw_arrays(ogl::DrawMode::Triangles, 0, 3);
+        
+        ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
 
         rusty_beagle2d_glfw::glfw_swap_buffers(&main_window);
         rusty_beagle2d_glfw::glfw_poll_events();

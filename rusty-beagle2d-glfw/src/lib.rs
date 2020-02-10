@@ -186,7 +186,8 @@ pub mod ogl {
     }
 
     pub enum BufferTarget {
-        ArrayBuffer
+        ArrayBuffer,
+        ElementArrayBuffer
     }
 
     pub enum Name {
@@ -228,6 +229,12 @@ pub mod ogl {
         Double
     }
 
+    pub enum ElementsDataType {
+        UnsignedByte,
+        UnsignedShort,
+        UnsignedInt
+    }
+
     pub enum DrawMode {
         Triangles
     }
@@ -236,6 +243,21 @@ pub mod ogl {
         // Load OpenGL functions
         // TODO: Read up on this funky syntax
         gl::load_with(|s| crate::glfw_get_proc_address(s));
+    }
+
+    pub fn draw_elements(drawMode: DrawMode, count: i32, dataType: ElementsDataType) {
+        unsafe {
+            gl::DrawElements(match drawMode {
+                DrawMode::Triangles => gl::TRIANGLES,
+            },
+            count,
+            match dataType {
+                ElementsDataType::UnsignedByte => gl::UNSIGNED_BYTE,
+                ElementsDataType::UnsignedInt => gl::UNSIGNED_INT,
+                ElementsDataType::UnsignedShort => gl::UNSIGNED_SHORT,
+            },
+            ptr::null());
+        }
     }
 
     pub fn draw_arrays(mode: DrawMode, first: i32, count: i32) {
@@ -487,11 +509,21 @@ pub mod ogl {
         }
     }
 
+    pub fn gl_gen_buffer() -> u32 {
+        let mut buffer = 0;
+
+        unsafe {
+            gl::GenBuffers(1, &mut buffer);
+            buffer
+        }
+    }
+
     pub fn gl_bind_buffer(target: BufferTarget, buffer: u32) {
         unsafe {
             gl::BindBuffer(
                 match target {
-                    BufferTarget::ArrayBuffer => gl::ARRAY_BUFFER
+                    BufferTarget::ArrayBuffer => gl::ARRAY_BUFFER,
+                    BufferTarget::ElementArrayBuffer => gl::ELEMENT_ARRAY_BUFFER
                 },
                 buffer
             );
@@ -505,7 +537,8 @@ pub mod ogl {
         unsafe {
             gl::BufferData(
                 match target {
-                    BufferTarget::ArrayBuffer => gl::ARRAY_BUFFER
+                    BufferTarget::ArrayBuffer => gl::ARRAY_BUFFER,
+                    BufferTarget::ElementArrayBuffer => gl::ELEMENT_ARRAY_BUFFER
                 },
                 typeSize as isize, // TODO: Gotta read up on "as" conversion... also, is it even safe to go from usize to isize? I suppose right??
                 data.as_ptr() as *const c_void,
