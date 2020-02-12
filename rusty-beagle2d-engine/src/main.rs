@@ -7,10 +7,11 @@ use stb_image::image;
 
 fn main() {
     let mut vertices: Vec<f32> = vec![
-         0.5,  0.5, 0.0, // Top Right
-         0.5, -0.5, 0.0, // Bottom Right
-        -0.5, -0.5, 0.0, // Bottom Left
-        -0.5,  0.5, 0.0 // Top Left
+        // Positions       // Texture Coords
+         0.5,  0.5, 0.0,   1.0, 1.0,         // Top Right
+         0.5, -0.5, 0.0,   1.0, 0.0,         // Bottom Right
+        -0.5, -0.5, 0.0,   0.0, 0.0,         // Bottom Left
+        -0.5,  0.5, 0.0,   0.0, 1.0,         // Top Left
     ];
 
     let mut indices: Vec<u32> = vec![
@@ -67,8 +68,8 @@ fn main() {
         0, 
         3, 
         ogl::DataType::Float,
-         false, 
-         mem::size_of::<f32>() as i32 * 3);
+        false, 
+        mem::size_of::<f32>() as i32 * 5);
 
     ogl::enable_vertex_attrib_array(0);
 
@@ -118,28 +119,41 @@ fn main() {
     ogl::use_program(shader_program);
 
     // Image Loading
+    // TODO: Make wrapper for this
+    unsafe {
+        stb_image::stb_image::bindgen::stbi_set_flip_vertically_on_load(1);
+    }    
+
     let imagePath = Path::new("dat/textures/beagle.jpg");
     let loadResult = image::load(imagePath);
 
-    let imageData: image::Image::<u8>;
-
-    match loadResult {
-        image::LoadResult::Error(message) => println!("Failed to load image: {}", message),
+    let imageData: image::Image::<u8> = match loadResult {
+        image::LoadResult::Error(message) => panic!("Failed to load image: {}", message),
         image::LoadResult::ImageU8(imageu8) => {
             println!("Image width: {}", imageu8.width);
             println!("Image height: {}", imageu8.height);
             println!("Image depth: {}", imageu8.depth);
-            imageData = imageu8;
+            imageu8
         },
-        image::LoadResult::ImageF32(imagef32) => println!("Loaded image f32!"),
-    }
+        image::LoadResult::ImageF32(imagef32) => panic!("Loaded image f32! Not supported yet..."),
+    };
 
     let texture_object = ogl::gen_texture();
     ogl::bind_texture(ogl::TextureTarget::Texture2d, texture_object);
 
+    ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureWrapS, ogl::TextureParameter::Repeat);
+    ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureWrapT, ogl::TextureParameter::Repeat);
+    ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureMinFilter, ogl::TextureParameter::Linear);
+    ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureMagFilter, ogl::TextureParameter::Linear);
+
+    ogl::tex_image_2d::<u8>(ogl::TextureTarget::Texture2d, 0, ogl::TextureInternalFormat::Rgb, imageData.width as i32, imageData.height as i32, 0, ogl::TextureFormat::Rgb, ogl::ElementsDataType::UnsignedByte, imageData.data);
     ogl::generate_mipmap(ogl::TextureTarget::Texture2d);
+    // TODO: Free image data after having uploaded it to OpenGL
 
-
+    let offset : u32 = (3 * mem::size_of::<f32>()) as u32;
+    
+    ogl::vertex_attrib_pointer(1, 2, ogl::DataType::Float, false, (mem::size_of::<f32>() * 5) as i32, offset);
+    ogl::enable_vertex_attrib_array(1);
 
     while !rusty_beagle2d_glfw::glfw_window_should_close(&main_window) {
         ogl::clear_color(

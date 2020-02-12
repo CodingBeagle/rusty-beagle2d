@@ -243,19 +243,47 @@ pub mod ogl {
         Texture2d
     }
 
+    pub enum TextureParameterName {
+        TextureWrapS,
+        TextureWrapT,
+        TextureMinFilter,
+        TextureMagFilter
+    }
+
+    pub enum TextureParameter {
+        Repeat,
+        Linear
+    }
+
+    pub enum TextureInternalFormat {
+        Rgb
+    }
+
+    pub enum TextureFormat {
+        Rgb
+    }
+
     pub fn init() {
         // Load OpenGL functions
         // TODO: Read up on this funky syntax
         gl::load_with(|s| crate::glfw_get_proc_address(s));
     }
 
-    pub fn tex_parameteri(textureTarget: TextureTarget, parameterName: u32, param: i32) {
+    pub fn tex_parameteri(textureTarget: TextureTarget, parameterName: TextureParameterName, param: TextureParameter) {
         unsafe {
             gl::TexParameteri(match textureTarget {
                 TextureTarget::Texture2d => gl::TEXTURE_2D,
             },
-            parameterName,
-            param);
+            match parameterName {
+                TextureParameterName::TextureWrapS => gl::TEXTURE_WRAP_S,
+                TextureParameterName::TextureWrapT => gl::TEXTURE_WRAP_T,
+                TextureParameterName::TextureMagFilter => gl::TEXTURE_MAG_FILTER,
+                TextureParameterName::TextureMinFilter => gl::TEXTURE_MIN_FILTER
+            },
+            match param {
+                TextureParameter::Linear => gl::LINEAR as i32,
+                TextureParameter::Repeat => gl::REPEAT as i32
+            });
         }
     }
 
@@ -267,18 +295,24 @@ pub mod ogl {
         }
     }
 
-    pub fn tex_image_2d<T>(textureTarget: TextureTarget, level: i32, internalFormat: i32, width: i32, height: i32, border: i32, format: u32, type_: u32, pixels: Vec<T>) {
+    pub fn tex_image_2d<T>(textureTarget: TextureTarget, level: i32, internalFormat: TextureInternalFormat, width: i32, height: i32, border: i32, format: TextureFormat, type_: ElementsDataType, pixels: Vec<T>) {
         unsafe {
             gl::TexImage2D(match textureTarget {
                 TextureTarget::Texture2d => gl::TEXTURE_2D,
             },
             level,
-            internalFormat,
+            gl::RGB as i32,
             width,
             height,
             border,
-            format,
-            type_,
+            match format {
+                TextureFormat::Rgb => gl::RGB
+            },
+            match type_ {
+                ElementsDataType::UnsignedByte => gl::UNSIGNED_BYTE,
+                ElementsDataType::UnsignedInt => gl::UNSIGNED_INT,
+                ElementsDataType::UnsignedShort => gl::UNSIGNED_SHORT
+            },
             pixels.as_ptr() as *const c_void);
         }
     }
@@ -380,12 +414,12 @@ pub mod ogl {
         }
     }
 
-    pub fn vertex_attrib_pointer<T>(index: u32, 
+    pub fn vertex_attrib_pointer(index: u32, 
         size: i32, 
         dataType: DataType, 
         normalized: bool, 
         stride: i32,
-        pointer: *const T) {
+        offset: u32) {
         
         let normalized: u8 = if normalized {1} else {0};
             
@@ -406,7 +440,7 @@ pub mod ogl {
                 },
                 normalized,
                 stride,
-                pointer as *const c_void
+                offset as *const c_void
             );
         }
     }
