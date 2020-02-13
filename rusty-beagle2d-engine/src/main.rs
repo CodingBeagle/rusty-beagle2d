@@ -200,6 +200,7 @@ fn main() {
     rusty_beagle2d_glfw::glfw_terminate();
 }
 
+// TODO: Does nalgebra_glm seriously not have this? Gotta look more into this
 fn degree_to_radians(degrees: f32) -> f32 {
     (std::f32::consts::PI / 180.0) * degrees
 }
