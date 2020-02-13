@@ -269,6 +269,21 @@ pub mod ogl {
         gl::load_with(|s| crate::glfw_get_proc_address(s));
     }
 
+    
+
+    pub fn uniform_matrix_4fv(location: i32, count: i32, transpose: bool, value: *const f32) {
+        unsafe {
+            gl::UniformMatrix4fv(location, count, if transpose {1} else {0}, value);
+        }
+    }
+
+    pub fn get_uniform_location(program: u32, name: &str) -> i32 {
+        let c_string = ffi::CString::new(name).unwrap();
+        unsafe {
+            gl::GetUniformLocation(program, c_string.as_ptr())
+        }
+    }
+
     pub fn tex_parameteri(textureTarget: TextureTarget, parameterName: TextureParameterName, param: TextureParameter) {
         unsafe {
             gl::TexParameteri(match textureTarget {

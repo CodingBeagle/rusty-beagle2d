@@ -5,6 +5,9 @@ use std::mem;
 use std::path::Path;
 use stb_image::image;
 
+// TODO: What does "extern crate" do?
+extern crate nalgebra_glm as glm;
+
 fn main() {
     let mut vertices: Vec<f32> = vec![
         // Positions       // Texture Coords
@@ -148,12 +151,27 @@ fn main() {
 
     ogl::tex_image_2d::<u8>(ogl::TextureTarget::Texture2d, 0, ogl::TextureInternalFormat::Rgb, imageData.width as i32, imageData.height as i32, 0, ogl::TextureFormat::Rgb, ogl::ElementsDataType::UnsignedByte, imageData.data);
     ogl::generate_mipmap(ogl::TextureTarget::Texture2d);
-    // TODO: Free image data after having uploaded it to OpenGL
 
+    // TODO: Free image data after having uploaded it to OpenGL
     let offset : u32 = (3 * mem::size_of::<f32>()) as u32;
     
     ogl::vertex_attrib_pointer(1, 2, ogl::DataType::Float, false, (mem::size_of::<f32>() * 5) as i32, offset);
     ogl::enable_vertex_attrib_array(1);
+
+    // Transformation testing
+    // TODO yo read up on matrix math again!
+    let translateVector = glm::vec3(400.0, 300.0, 0.0);
+    let rotationAxis = glm::vec3(0.0, 0.0, 1.0);
+    let scaleVec = glm::vec3(imageData.width as f32, imageData.height as f32, 1.0);
+
+    let transform_location = ogl::get_uniform_location(shader_program, "transform");
+    let projection_location = ogl::get_uniform_location(shader_program, "projection");
+
+    let mut moving_degrees: f32 = 0.0;
+
+    // TODO yo read up on orthographic projections again!
+    let orthographic_projection = glm::ortho(0.0, 800.0, 600.0, 0.0, -1.0, 1.0);
+    ogl::uniform_matrix_4fv(projection_location, 1, false, glm::value_ptr(&orthographic_projection).first().unwrap());
 
     while !rusty_beagle2d_glfw::glfw_window_should_close(&main_window) {
         ogl::clear_color(
@@ -164,6 +182,15 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
+        moving_degrees += 0.5;
+
+        let mut transform_matrix = glm::Mat4::identity(); // 4x4 matrix with f32 elements.
+        transform_matrix = glm::translate(&transform_matrix, &translateVector);
+        transform_matrix = glm::rotate(&transform_matrix, degree_to_radians(moving_degrees), &rotationAxis);
+        transform_matrix = glm::scale(&transform_matrix, &scaleVec);
+
+        ogl::uniform_matrix_4fv(transform_location, 1, false, glm::value_ptr(&transform_matrix).first().unwrap());
+
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
 
         rusty_beagle2d_glfw::glfw_swap_buffers(&main_window);
@@ -173,6 +200,10 @@ fn main() {
     rusty_beagle2d_glfw::glfw_terminate();
 }
 
+fn degree_to_radians(degrees: f32) -> f32 {
+    (std::f32::consts::PI / 180.0) * degrees
+}
+ 
 fn openg_debug_callback(source: u32, gltype: u32, id: u32, severity: u32, length: i32, message: String) {
     println!("We received an OpenGL Error: {}", message);
 }
