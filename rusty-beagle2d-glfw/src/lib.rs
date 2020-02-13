@@ -265,11 +265,11 @@ pub mod ogl {
 
     pub fn init() {
         // Load OpenGL functions
-        // TODO: Read up on this funky syntax
+        // TODO: Read up on this funky syntax (think this is called a closure?)
         gl::load_with(|s| crate::glfw_get_proc_address(s));
     }
 
-    
+
 
     pub fn uniform_matrix_4fv(location: i32, count: i32, transpose: bool, value: *const f32) {
         unsafe {
