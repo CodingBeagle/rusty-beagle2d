@@ -1,4 +1,5 @@
 use rusty_beagle2d_glfw;
+use rusty_beagle2d_glfw::glfw;
 use rusty_beagle2d_glfw::ogl;
 use std::fs;
 use std::mem;
@@ -22,24 +23,18 @@ fn main() {
         1, 2, 3  // Second Triangle
     ];
 
-    let init_result = rusty_beagle2d_glfw::glfw_init();
+    glfw::init().expect("Failed to initialize GLFW!");
 
-    if !init_result {
-        panic!("Failed to initialize GLFW!");
-    }
+    glfw::window_hint(glfw::WindowHint::Resizable as u32, glfw::GlfwBoolean::False as u32);
+    glfw::window_hint(glfw::WindowHint::OpenGlProfile as u32, glfw::WindowHintValue::OpenGlCoreProfile as u32);
+    glfw::window_hint(glfw::WindowHint::ContextVersionMajor as u32, 3);
+    glfw::window_hint(glfw::WindowHint::ContextVersionMinor as u32, 3);
+    glfw::window_hint(glfw::WindowHint::OpenGlDebugContext as u32, glfw::GlfwBoolean::True as u32);
 
-    let window_title = String::from("Rusyt Beagle! :D");
+    let main_window = 
+        glfw::create_window(800, 600, String::from("Rusty Beagle! :D"), None, None).expect("Failed to create main window!");
 
-    // TODO: yeah.. this enum casting ain't great son
-    rusty_beagle2d_glfw::glfw_window_hint(rusty_beagle2d_glfw::WindowHint::Resizable, rusty_beagle2d_glfw::GlfwBool::False as i32);
-    rusty_beagle2d_glfw::glfw_window_hint(rusty_beagle2d_glfw::WindowHint::OpenGlProfile, rusty_beagle2d_glfw::OpenGlProfile::CoreProfile as i32);
-    rusty_beagle2d_glfw::glfw_window_hint(rusty_beagle2d_glfw::WindowHint::ContextVersionMajor, 3);
-    rusty_beagle2d_glfw::glfw_window_hint(rusty_beagle2d_glfw::WindowHint::ContextVersionMinor, 3);
-    rusty_beagle2d_glfw::glfw_window_hint(rusty_beagle2d_glfw::WindowHint::OpenGlDebugContext, rusty_beagle2d_glfw::GlfwBool::True as i32);
-
-    let main_window = rusty_beagle2d_glfw::glfw_create_window(800, 600, window_title, None, None).unwrap();
-
-    rusty_beagle2d_glfw::glfw_make_context_current(&main_window);
+    glfw::make_context_current(main_window);
 
     ogl::init();
 
@@ -82,6 +77,7 @@ fn main() {
     let vertexShader = ogl::create_shader(ogl::ShaderType::Vertex);
     ogl::shader_source(vertexShader, 1, &vec![&vertexShaderCode]);
     ogl::compile_shader(vertexShader);
+
 
     let vertex_shader_compilation_result = ogl::get_shader(vertexShader, ogl::Parameter::CompileStatus);
 
@@ -173,7 +169,7 @@ fn main() {
     let orthographic_projection = glm::ortho(0.0, 800.0, 600.0, 0.0, -1.0, 1.0);
     ogl::uniform_matrix_4fv(projection_location, 1, false, glm::value_ptr(&orthographic_projection).first().unwrap());
 
-    while !rusty_beagle2d_glfw::glfw_window_should_close(&main_window) {
+    while !glfw::window_should_close(main_window).expect("Failed to get window should close status.") {
         ogl::clear_color(
             100.0 / 255.0, 
             149.0 / 255.0, 
@@ -193,11 +189,11 @@ fn main() {
 
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
 
-        rusty_beagle2d_glfw::glfw_swap_buffers(&main_window);
-        rusty_beagle2d_glfw::glfw_poll_events();
+        glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
+        glfw::poll_events();
     }
 
-    rusty_beagle2d_glfw::glfw_terminate();
+    glfw::terminate();
 }
 
 // TODO: Does nalgebra_glm seriously not have this? Gotta look more into this
