@@ -1,0 +1,12 @@
+# Rusty Beagle 2D
+Welcome to Rusty Beagle 2D! A (to be) 2D renderer and 2D game engine.
+
+This is a hobby project of mine, with the purpose of learning the programming language [Rust](https://www.rust-lang.org/) whilst also learning real-time rendering.
+
+## Current Status
+Currently the project is still in very early stages, as I'm still learning to navigate Rust. A large chunk of the initial development time has been spent learning the Rust FFI journey, in order to interface with C libraries (such as OpenGL, GLFW, etc...).
+
+At the current stage I have successfully gotten to the classic *Hello World* stage of rendering (well, perhaps a bit more...), in that I can render a 2D sprite/texture. I can also transform the sprite (rotate, translate, and scale). 
+
+Here's a screenshot of me rendering a rotated and scaled beagle...
+
