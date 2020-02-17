@@ -6,7 +6,8 @@ use std::mem;
 use std::path::Path;
 use stb_image::image;
 
-// TODO: What does "extern crate" do?
+// "extern crate" indicates that you want to link against an external library, and brings the top-level
+// crate name into scope.
 extern crate nalgebra_glm as glm;
 
 fn main() {
@@ -38,8 +39,8 @@ fn main() {
 
     ogl::init();
 
-    println!("{}", ogl::gl_get_string(ogl::Name::RENDERER));
-    println!("{}", ogl::gl_get_string(ogl::Name::VERSION));
+    println!("{}", ogl::gl_get_string(ogl::Name::Renderer));
+    println!("{}", ogl::gl_get_string(ogl::Name::Version));
 
     // Context Setup
     ogl::gl_enable(ogl::Capability::DebugOutput);
@@ -53,36 +54,35 @@ fn main() {
     let ebo = ogl::gl_gen_buffer();
 
     ogl::gl_bind_buffer(ogl::BufferTarget::ElementArrayBuffer, ebo);
-    ogl::BufferData(ogl::BufferTarget::ElementArrayBuffer, &mut indices, ogl::Usage::StaticDraw);
+    ogl::buffer_data(ogl::BufferTarget::ElementArrayBuffer, &mut indices, ogl::Usage::StaticDraw);
 
     // TODO: Could make a helper method that just returns a single int... would make it much easier.
-    let mut vertex_buffer: [u32;1] = [0];
-    ogl::gl_gen_buffers(1, &mut vertex_buffer);
+    let mut vertex_buffer = ogl::gl_gen_buffer();
+    ogl::gl_bind_buffer(ogl::BufferTarget::ArrayBuffer, vertex_buffer);
+    ogl::buffer_data(ogl::BufferTarget::ArrayBuffer, &mut vertices, ogl::Usage::StaticDraw);
 
-    ogl::gl_bind_buffer(ogl::BufferTarget::ArrayBuffer, vertex_buffer[0]);
-    ogl::BufferData(ogl::BufferTarget::ArrayBuffer, &mut vertices, ogl::Usage::StaticDraw);
-
-    ogl::vertex_attrib_pointer_no_offset(
+    ogl::vertex_attrib_pointer(
         0, 
         3, 
         ogl::DataType::Float,
         false, 
-        mem::size_of::<f32>() as i32 * 5);
+        mem::size_of::<f32>() as i32 * 5,
+        0);
 
     ogl::enable_vertex_attrib_array(0);
 
     // Shader compilation
     let vertexShaderCode = fs::read_to_string("dat\\shaders\\vertex.shader").unwrap();
 
-    let vertexShader = ogl::create_shader(ogl::ShaderType::Vertex);
-    ogl::shader_source(vertexShader, 1, &vec![&vertexShaderCode]);
-    ogl::compile_shader(vertexShader);
+    let vertex_shader = ogl::create_shader(ogl::ShaderType::Vertex);
+    ogl::shader_source(vertex_shader, 1, &vec![&vertexShaderCode]);
+    ogl::compile_shader(vertex_shader);
 
 
-    let vertex_shader_compilation_result = ogl::get_shader(vertexShader, ogl::Parameter::CompileStatus);
+    let vertex_shader_compilation_result = ogl::get_shader(vertex_shader, ogl::Parameter::CompileStatus);
 
     if vertex_shader_compilation_result != 1 {
-        let compilationReport = ogl::get_shader_info_log(vertexShader);
+        let compilationReport = ogl::get_shader_info_log(vertex_shader);
 
         println!("{}", compilationReport);
         panic!("Failed to compile vertex shader!");
@@ -100,7 +100,7 @@ fn main() {
 
     let shader_program = ogl::create_program();
 
-    ogl::attach_shader(shader_program, vertexShader);   
+    ogl::attach_shader(shader_program, vertex_shader);   
     ogl::attach_shader(shader_program, fragment_shader);
 
     ogl::link_program(shader_program);
@@ -112,7 +112,7 @@ fn main() {
     }
 
     // Shader cleanup
-    ogl::delete_shader(vertexShader);
+    ogl::delete_shader(vertex_shader);
     ogl::delete_shader(fragment_shader);
 
     ogl::use_program(shader_program);
@@ -150,7 +150,6 @@ fn main() {
 
     // TODO: Free image data after having uploaded it to OpenGL
     let offset : u32 = (3 * mem::size_of::<f32>()) as u32;
-    
     ogl::vertex_attrib_pointer(1, 2, ogl::DataType::Float, false, (mem::size_of::<f32>() * 5) as i32, offset);
     ogl::enable_vertex_attrib_array(1);
 

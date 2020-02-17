@@ -73,14 +73,12 @@ pub fn create_window(width: u32,
         // The CString type represents an owned, C-compatible, nul-terminated string with no
         // nul bytes in the middle.
         // It's used to generate C-compatible strings from interface with Rust to C libraries.
-        let title_c_string = CString::new(title);
-
-        let title_c_string = match title_c_string {
+        let title_c_string = match CString::new(title) {
             Ok(cstring) => cstring,
             Err(e) => return Err(String::from("Failed to create CString from title parameter."))
         };
 
-        let created_window = glfwCreateWindow(800, 600, title_c_string.as_ptr(), 
+        let created_window = glfwCreateWindow(800, 600, title_c_string.as_ptr(),
             match monitor {
                 Some(monitor) => monitor,
                 None => std::ptr::null_mut::<GLFWmonitor>(),

@@ -10,6 +10,7 @@ use std::env;
 fn main() {
     // Add linking search directories
     let project_directory = env::var("CARGO_MANIFEST_DIR").unwrap();
+    println!("cargo:rustc-link-lib=dylib=glfw3-x64-debug");
     println!("cargo:rustc-link-search=native={}", Path::new(&project_directory).join("libs\\glfw").display());
 
     // The bindgen::Builder is the main entry point
