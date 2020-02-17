@@ -10,3 +10,4 @@ At the current stage I have successfully gotten to the classic *Hello World* sta
 
 Here's a screenshot of me rendering a rotated and scaled beagle...
 
+![screenshot](https://gitlab.com/CodingBeagle/rusty-beagle2d/-/raw/master/rusty-beagle.png)
