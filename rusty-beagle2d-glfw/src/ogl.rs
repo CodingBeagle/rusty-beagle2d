@@ -104,10 +104,10 @@ pub enum TextureParameterName {
 }
 
 // Representable as u32 to make it easy to cast it to C API.
-#[repr(i32)]
+#[repr(u32)]
 pub enum TextureParameter {
-    Repeat,
-    Linear
+    Repeat = gl::REPEAT,
+    Linear = gl::LINEAR
 }
 
 #[repr(u32)]

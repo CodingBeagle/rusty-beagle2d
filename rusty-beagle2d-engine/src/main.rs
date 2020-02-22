@@ -1,7 +1,6 @@
 use rusty_beagle2d_glfw;
 use rusty_beagle2d_glfw::glfw;
 use rusty_beagle2d_glfw::ogl;
-use std::fs;
 use std::mem;
 use std::path::Path;
 use stb_image::image;
@@ -9,6 +8,10 @@ use stb_image::image;
 // "extern crate" indicates that you want to link against an external library, and brings the top-level
 // crate name into scope.
 extern crate nalgebra_glm as glm;
+
+mod core;
+use crate::core::shader;
+use crate::core::shader_program;
 
 fn main() {
     let mut vertices: Vec<f32> = vec![
@@ -57,7 +60,7 @@ fn main() {
     ogl::buffer_data(ogl::BufferTarget::ElementArrayBuffer, &mut indices, ogl::Usage::StaticDraw);
 
     // TODO: Could make a helper method that just returns a single int... would make it much easier.
-    let mut vertex_buffer = ogl::gl_gen_buffer();
+    let vertex_buffer = ogl::gl_gen_buffer();
     ogl::gl_bind_buffer(ogl::BufferTarget::ArrayBuffer, vertex_buffer);
     ogl::buffer_data(ogl::BufferTarget::ArrayBuffer, &mut vertices, ogl::Usage::StaticDraw);
 
@@ -72,50 +75,11 @@ fn main() {
     ogl::enable_vertex_attrib_array(0);
 
     // Shader compilation
-    let vertexShaderCode = fs::read_to_string("dat\\shaders\\vertex.shader").unwrap();
-
-    let vertex_shader = ogl::create_shader(ogl::ShaderType::Vertex);
-    ogl::shader_source(vertex_shader, 1, &vec![&vertexShaderCode]);
-    ogl::compile_shader(vertex_shader);
-
-
-    let vertex_shader_compilation_result = ogl::get_shader(vertex_shader, ogl::Parameter::CompileStatus);
-
-    if vertex_shader_compilation_result != 1 {
-        let compilationReport = ogl::get_shader_info_log(vertex_shader);
-
-        println!("{}", compilationReport);
-        panic!("Failed to compile vertex shader!");
-    }
-
-    let fragment_shader_code = fs::read_to_string("dat\\shaders\\fragment.shader").unwrap();
-
-    let fragment_shader = ogl::create_shader(ogl::ShaderType::Fragment);
-    ogl::shader_source(fragment_shader, 1, &vec![&fragment_shader_code]);
-    ogl::compile_shader(fragment_shader);
-
-    if ogl::get_shader(fragment_shader, ogl::Parameter::CompileStatus) != 1 {
-        panic!("Failed to compile fragment shader! {}", ogl::get_shader_info_log(fragment_shader));
-    }
-
-    let shader_program = ogl::create_program();
-
-    ogl::attach_shader(shader_program, vertex_shader);   
-    ogl::attach_shader(shader_program, fragment_shader);
-
-    ogl::link_program(shader_program);
-
-    let link_status = ogl::get_programiv(shader_program, ogl::ProgramParameter::LinkStatus);
-
-    if link_status != 1 {
-        panic!("Failed to link shader program! {}", ogl::get_program_info_log(shader_program));
-    }
-
-    // Shader cleanup
-    ogl::delete_shader(vertex_shader);
-    ogl::delete_shader(fragment_shader);
-
-    ogl::use_program(shader_program);
+    let vertex_shader = shader::Shader::new(shader::ShaderType::VertexShader, String::from("dat/shaders/vertex.shader"));
+    let fragment_shader = shader::Shader::new(shader::ShaderType::FragmentShader, String::from("dat/shaders/fragment.shader"));
+    
+    let shader_program = shader_program::ShaderProgram::new(vertex_shader, fragment_shader);
+    shader_program.activate();
 
     // Image Loading
     // TODO: Make wrapper for this
@@ -159,8 +123,8 @@ fn main() {
     let rotationAxis = glm::vec3(0.0, 0.0, 1.0);
     let scaleVec = glm::vec3(imageData.width as f32, imageData.height as f32, 1.0);
 
-    let transform_location = ogl::get_uniform_location(shader_program, "transform");
-    let projection_location = ogl::get_uniform_location(shader_program, "projection");
+    let transform_location = ogl::get_uniform_location(shader_program.get_opengl_object_id(), "transform");
+    let projection_location = ogl::get_uniform_location(shader_program.get_opengl_object_id(), "projection");
 
     let mut moving_degrees: f32 = 0.0;
 
