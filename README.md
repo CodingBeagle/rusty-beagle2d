@@ -10,3 +10,9 @@ At the current stage I have successfully gotten to the classic *Hello World* sta
 
 Here's a screenshot of me rendering a rotated and scaled beagle...
 
+![screenshot](https://gitlab.com/CodingBeagle/rusty-beagle2d/-/raw/master/rusty-beagle.png)
+
+# GLFW and OpenGL Crates
+As part of the project I'm creating higher level wrappers around the low-level FFI functions to the libraries I use. So far, this is OpenGL and GLFW.
+
+I wouldn't recommend that anyone use them, as they are being refactored and otherwise changed constantly, as I learn more about the language and improve.
