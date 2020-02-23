@@ -62,8 +62,8 @@ pub fn window_hint(windowHint: u32, windowHintValue: u32) {
     }
 }
 
-pub fn create_window(width: u32, 
-                    height: u32, 
+pub fn create_window(width: i32, 
+                    height: i32, 
                     title: String, 
                     monitor: Option<*mut GLFWmonitor>, 
                     share: Option<*mut GLFWwindow>) -> Result<*mut GLFWwindow, String>
@@ -78,7 +78,7 @@ pub fn create_window(width: u32,
             Err(e) => return Err(String::from("Failed to create CString from title parameter."))
         };
 
-        let created_window = glfwCreateWindow(800, 600, title_c_string.as_ptr(),
+        let created_window = glfwCreateWindow(width, height, title_c_string.as_ptr(),
             match monitor {
                 Some(monitor) => monitor,
                 None => std::ptr::null_mut::<GLFWmonitor>(),

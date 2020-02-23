@@ -27,6 +27,10 @@ impl Renderer2d {
         // Load OpenGl functions
         ogl::init();
 
+        // Display OpenGl context information
+        println!("{}", ogl::gl_get_string(ogl::Name::Renderer));
+        println!("{}", ogl::gl_get_string(ogl::Name::Version));
+
         // Context Setup
         ogl::gl_enable(ogl::Capability::DebugOutput);
         ogl::gl_debug_message_callback(openg_debug_callback);
@@ -55,11 +59,6 @@ impl Renderer2d {
 
         ogl::enable_vertex_attrib_array(0);
 
-        // TODO: Make wrapper for this
-        unsafe {
-            stb_image::stb_image::bindgen::stbi_set_flip_vertically_on_load(1);
-        }
-
         let offset : u32 = (3 * mem::size_of::<f32>()) as u32;
 
         ogl::vertex_attrib_pointer(1,
@@ -82,32 +81,38 @@ impl Renderer2d {
     }
 
     pub fn draw_sprite(&self, sprite: &sprite::Sprite) {
+        // Activate the Sprite's texture for the OpenGl context
+        sprite.texture.activate();
+
         let transform_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "transform");
         let projection_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "projection");
 
         // TODO yo read up on orthographic projections again!
-        let orthographic_projection = glm::ortho(0.0, 800.0, 600.0, 0.0, -1.0, 1.0);
+        let orthographic_projection = glm::ortho(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
         ogl::uniform_matrix_4fv(projection_location, 1, false, glm::value_ptr(&orthographic_projection).first().unwrap());
 
         // Transformation testing
         // TODO yo read up on matrix math again!
-        let translateVector = glm::vec3(400.0, 300.0, 0.0);
+        let translate_vector = glm::vec3(400.0, 300.0, 0.0);
 
-        let rotationAxis = glm::vec3(0.0, 0.0, 1.0);
-        
-        let scaleVec = glm::vec3(
+        let scale_vec = glm::vec3(
             sprite.texture.get_width() as f32, 
             sprite.texture.get_height() as f32,
             1.0);
 
         let mut transform_matrix = glm::Mat4::identity(); // 4x4 matrix with f32 elements.
-        transform_matrix = glm::translate(&transform_matrix, &translateVector);
-        transform_matrix = glm::rotate(&transform_matrix, sprite.angle, &rotationAxis);
-        transform_matrix = glm::scale(&transform_matrix, &scaleVec);
+        transform_matrix = glm::translate(&transform_matrix, &translate_vector);
+        transform_matrix = glm::rotate(&transform_matrix, Renderer2d::degree_to_radians(sprite.angle), &glm::vec3(0.0, 0.0, 1.0));
+        transform_matrix = glm::scale(&transform_matrix, &scale_vec);
 
         ogl::uniform_matrix_4fv(transform_location, 1, false, glm::value_ptr(&transform_matrix).first().unwrap());
 
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
+    }
+
+    // TODO: Does nalgebra_glm seriously not have this? Gotta look more into this
+    fn degree_to_radians(degrees: f32) -> f32 {
+        (std::f32::consts::PI / 180.0) * degrees
     }
 }
 
