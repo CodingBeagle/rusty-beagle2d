@@ -8,8 +8,8 @@ use crate::core::texture;
 // Sprite does not outlive the Texture it references. It if did, we could hit a case of having
 // A dangling reference to a texture no longer existing in the program.
 pub struct Sprite<'a> {
-    pub position_x: u32,
-    pub position_y: u32,
+    pub position_x: f32,
+    pub position_y: f32,
     pub angle: f32,
     pub uniform_scale: f32,
     pub texture: &'a texture::Texture
@@ -24,8 +24,8 @@ pub struct Sprite<'a> {
 impl<'a> Sprite<'a> {
     pub fn new(sprite_texture: &'a texture::Texture) -> Sprite<'a> {
         Sprite { 
-            position_x: 0,
-            position_y: 0,
+            position_x: 0.0,
+            position_y: 0.0,
             angle: 0.0,
             uniform_scale: 1.0,
             texture: sprite_texture

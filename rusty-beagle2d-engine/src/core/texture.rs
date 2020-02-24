@@ -14,6 +14,7 @@ impl Texture {
         let image_path = path::Path::new(&image_filename);
         let load_result = image::load(image_path);
 
+        // TODO: Support images with multiple depth... right now I'll just expect PNG with depth of 4 (RGBA).
         let image_data = match load_result {
             image::LoadResult::Error(error_message) => panic!("Failed to load image: {}", error_message),
             image::LoadResult::ImageF32(imagef32) => panic!("Loaded image f32, not supported right now"),
@@ -30,11 +31,11 @@ impl Texture {
     
         ogl::tex_image_2d::<u8>(ogl::TextureTarget::Texture2d,
              0,
-            ogl::TextureInternalFormat::Rgb,
+            ogl::TextureInternalFormat::Rgba8,
             image_data.width as i32,
             image_data.height as i32,
             0, 
-            ogl::TextureFormat::Rgb,
+            ogl::TextureFormat::Rgba,
             ogl::ElementsDataType::UnsignedByte,
             image_data.data);
 

@@ -28,8 +28,8 @@ fn main() {
     let renderer2d = renderer2d::Renderer2d::new();
 
     // Image Loading
-    let beagle_texture = texture::Texture::new(String::from("dat/textures/beagle.jpg"));
-    let mut beagle_sprite = sprite::Sprite::new(&beagle_texture);
+    let grid_texture = texture::Texture::new(String::from("dat/textures/grid.png"));
+    let grid_sprite = sprite::Sprite::new(&grid_texture);
 
     while !glfw::window_should_close(main_window).expect("Failed to get window should close status.") {
         ogl::clear_color(
@@ -40,7 +40,7 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
-        renderer2d.draw_sprite(&beagle_sprite);
+        renderer2d.draw_sprite(&grid_sprite);
 
         glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
         glfw::poll_events();

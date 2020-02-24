@@ -35,6 +35,10 @@ impl Renderer2d {
         ogl::gl_enable(ogl::Capability::DebugOutput);
         ogl::gl_debug_message_callback(openg_debug_callback);
 
+        // Enable opacity
+        ogl::enable(ogl::Cap::Blend);
+        ogl::blend_func(ogl::BlendFactor::SrcAlpha, ogl::BlendFactor::OneMinusSrcAlpha);
+
         // Bind VAO
         let vao = ogl::gen_vertex_array();
         ogl::bind_vertex_array(vao);
@@ -93,7 +97,7 @@ impl Renderer2d {
 
         // Transformation testing
         // TODO yo read up on matrix math again!
-        let translate_vector = glm::vec3(400.0, 300.0, 0.0);
+        let translate_vector = glm::vec3(sprite.position_x, sprite.position_y, 0.0);
 
         let scale_vec = glm::vec3(
             sprite.texture.get_width() as f32, 

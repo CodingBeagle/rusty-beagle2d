@@ -112,12 +112,27 @@ pub enum TextureParameter {
 
 #[repr(u32)]
 pub enum TextureInternalFormat {
-    Rgb = gl::RGB
+    Rgb = gl::RGB,
+    Rgba = gl::RGBA,
+    Rgba8 = gl::RGBA8
 }
 
 #[repr(u32)]
 pub enum TextureFormat {
-    Rgb = gl::RGB
+    Rgb = gl::RGB,
+    Rgba = gl::RGBA
+}
+
+#[repr(u32)]
+pub enum BlendFactor {
+    SrcAlpha = gl::SRC_ALPHA,
+    OneMinusSrcAlpha = gl::ONE_MINUS_SRC_ALPHA
+}
+
+// TODO: Give better name
+#[repr(u32)]
+pub enum Cap {
+    Blend = gl::BLEND
 }
 
 pub fn init() {
@@ -129,6 +144,18 @@ pub fn init() {
     // Afterwards, you specify the body of the closure with {}. If the closure is a single expression,
     // The curly braces are optional.
     gl::load_with(|s| crate::glfw::get_proc_address(s));
+}
+
+pub fn enable(capability: Cap) {
+    unsafe {
+        gl::Enable(capability as u32);
+    }
+}
+
+pub fn blend_func(sfactor: BlendFactor, dfactor: BlendFactor) {
+    unsafe {
+        gl::BlendFunc(sfactor as u32, dfactor as u32);
+    }
 }
 
 pub fn uniform_matrix_4fv(location: i32, count: i32, transpose: bool, value: *const f32) {
