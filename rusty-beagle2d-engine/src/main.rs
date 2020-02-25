@@ -25,6 +25,8 @@ fn main() {
 
     glfw::make_context_current(main_window);
 
+    glfw::set_key_callback(main_window, Some(glfw_key_callback));
+
     let renderer2d = renderer2d::Renderer2d::new();
 
     // Image Loading
@@ -43,10 +45,18 @@ fn main() {
         renderer2d.draw_sprite(&grid_sprite);
 
         glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
+
+        // For continuous rendering, poll_events is the best way to process pending events.
+        // This is a non-blocking event processing call.
         glfw::poll_events();
     }
 
     glfw::terminate();
+}
+
+// TODO: Find a good pattern for dispencing key press events to the rest of a game engine
+extern "C" fn glfw_key_callback(window: *mut glfw::GLFWwindow, key: i32, scancode: i32, action: i32, mods: i32) {
+    
 }
  
 fn openg_debug_callback(source: u32, gltype: u32, id: u32, severity: u32, length: i32, message: String) {

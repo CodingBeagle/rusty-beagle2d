@@ -41,6 +41,8 @@ pub enum WindowHintValue {
     OpenGlCoreProfile = GLFW_OPENGL_CORE_PROFILE,
 }
 
+
+
 // LEARN - Result<(), ...>
 // In Rust, "()" is the "void" type, also called the Unit type.
 // For Results, this is the idiomatic way to indicate a function in which
@@ -59,6 +61,17 @@ pub fn init() -> Result<(), String> {
 pub fn window_hint(windowHint: u32, windowHintValue: u32) {
     unsafe {
         glfwWindowHint(windowHint as i32, windowHintValue as i32);
+    }
+}
+
+pub fn set_key_callback(window: *mut GLFWwindow, callback: GLFWkeyfun) {
+    unsafe {
+        glfwSetKeyCallback(window, callback);
+
+        // TODO: Check to see if GLFW had any error here.
+        // GLFW can actually return Null / None from glfwSetKeyCallback if GLFW has not yet
+        // Been initialized. But it will also return Null / None if everything went OK but
+        // Not callback had been previously set!
     }
 }
 
