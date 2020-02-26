@@ -94,8 +94,7 @@ fn main() {
 
 fn is_key_down(button_id: i32) -> bool {
     unsafe {
-        let mut temp_state = (button_states << button_id) & (1 << 31);
-        temp_state != 0
+        (button_states << button_id) & (1 << 31) != 0
     }
 }
 
