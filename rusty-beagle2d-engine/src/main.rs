@@ -11,6 +11,12 @@ use crate::core::texture;
 use crate::core::renderer2d;
 use crate::core::sprite;
 
+static mut cam_x: f32 = 0.0;
+static mut cam_y: f32 = 0.0;
+static mut last_state: u32 = 0;
+
+static mut button_states: u32 = 0;
+
 fn main() {
     glfw::init().expect("Failed to initialize GLFW!");
 
@@ -27,7 +33,7 @@ fn main() {
 
     glfw::set_key_callback(main_window, Some(glfw_key_callback));
 
-    let renderer2d = renderer2d::Renderer2d::new();
+    let mut renderer2d = renderer2d::Renderer2d::new();
 
     // Image Loading
     let grid_texture = texture::Texture::new(String::from("dat/textures/grid.png"));
@@ -42,6 +48,38 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
+        unsafe {
+            renderer2d.set_camera_position(cam_x, cam_y);
+        }
+
+        // KEY RIGHT
+        if is_key_down(0) {
+            unsafe {
+                cam_x -= 5.0;
+            }
+        }
+
+        // KEY LEFT
+        if is_key_down(1) {
+            unsafe {
+                cam_x += 5.0;
+            }
+        }
+
+        // KEY UP
+        if is_key_down(2) {
+            unsafe {
+                cam_y += 5.0;
+            }
+        }
+
+        // KEY DOWN
+        if is_key_down(3) {
+            unsafe {
+                cam_y -= 5.0;
+            }
+        }
+
         renderer2d.draw_sprite(&grid_sprite);
 
         glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
@@ -54,11 +92,48 @@ fn main() {
     glfw::terminate();
 }
 
+fn is_key_down(button_id: i32) -> bool {
+    unsafe {
+        let mut temp_state = (button_states << button_id) & (1 << 31);
+        temp_state != 0
+    }
+}
+
 // TODO: Find a good pattern for dispencing key press events to the rest of a game engine
 extern "C" fn glfw_key_callback(window: *mut glfw::GLFWwindow, key: i32, scancode: i32, action: i32, mods: i32) {
+    unsafe {
+        let mut button_id = -1;
+
+        if key == glfw::GLFW_KEY_RIGHT as i32 {
+            button_id = 0;
+        }
+
+        if key == glfw::GLFW_KEY_LEFT as i32 {
+            button_id = 1;
+        }
+
+        if key == glfw::GLFW_KEY_UP as i32 {
+            button_id = 2;
+        }
+
+        if key == glfw::GLFW_KEY_DOWN as i32 {
+            button_id = 3;
+        }
+
+        if button_id >= 0 {
+            if action == glfw::GLFW_PRESS as i32 {
+                button_states = button_states | (1 << (31 - button_id));
+            }
     
+            if action == glfw::GLFW_RELEASE as i32 {
+                button_states = button_states ^ (1 << (31 - button_id));
+            }
+        }
+    }   
 }
  
+// 
+
 fn openg_debug_callback(source: u32, gltype: u32, id: u32, severity: u32, length: i32, message: String) {
     println!("We received an OpenGL Error: {}", message);
 }

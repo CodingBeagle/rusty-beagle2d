@@ -6,10 +6,17 @@ use crate::core::shader;
 use crate::core::shader_program;
 
 pub struct Renderer2d {
-    shader_program: shader_program::ShaderProgram
+    shader_program: shader_program::ShaderProgram,
+    camera_position_x: f32,
+    camera_position_y: f32
 }
 
 impl Renderer2d {
+    pub fn set_camera_position(&mut self, position_x: f32, position_y: f32) {
+        self.camera_position_x = position_x;
+        self.camera_position_y = position_y;
+    }
+
     pub fn new() -> Renderer2d {
         let mut vertices: Vec<f32> = vec![
             // Positions       // Texture Coords
@@ -81,7 +88,11 @@ impl Renderer2d {
         let shader_program = shader_program::ShaderProgram::new(vertex_shader, fragment_shader);
         shader_program.activate();
 
-        Renderer2d { shader_program: shader_program }
+        Renderer2d {
+            shader_program: shader_program,
+            camera_position_x: 0.0,
+            camera_position_y: 0.0 
+        }
     }
 
     pub fn draw_sprite(&self, sprite: &sprite::Sprite) {
@@ -92,7 +103,10 @@ impl Renderer2d {
         let projection_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "projection");
 
         // TODO yo read up on orthographic projections again!
-        let orthographic_projection = glm::ortho(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
+        let mut orthographic_projection = glm::ortho(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
+        let cam_translate = glm::vec3(self.camera_position_x, self.camera_position_y, 1.0);
+        orthographic_projection = glm::translate(&orthographic_projection, &cam_translate);
+
         ogl::uniform_matrix_4fv(projection_location, 1, false, glm::value_ptr(&orthographic_projection).first().unwrap());
 
         // Transformation testing
