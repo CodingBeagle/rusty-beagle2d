@@ -18,12 +18,13 @@ impl Renderer2d {
     }
 
     pub fn new() -> Renderer2d {
+        // TODO: Read up on the OpenGL coords... clearly don't understand that, or how it works with orthographic cameras...
         let mut vertices: Vec<f32> = vec![
             // Positions       // Texture Coords
-             0.5,  0.5, 0.0,   1.0, 1.0,         // Top Right
-             0.5, -0.5, 0.0,   1.0, 0.0,         // Bottom Right
-            -0.5, -0.5, 0.0,   0.0, 0.0,         // Bottom Left
-            -0.5,  0.5, 0.0,   0.0, 1.0,         // Top Left
+             1.0,  1.0, 0.0,   1.0, 1.0,         // Top Right
+             1.0,  0.0, 0.0,   1.0, 0.0,         // Bottom Right
+             0.0,  0.0, 0.0,   0.0, 0.0,         // Bottom Left
+             0.0,  1.0, 0.0,   0.0, 1.0,         // Top Left
         ];
 
         let mut indices: Vec<u32> = vec![

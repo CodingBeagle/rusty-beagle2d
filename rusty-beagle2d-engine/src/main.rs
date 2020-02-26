@@ -13,7 +13,6 @@ use crate::core::sprite;
 
 static mut cam_x: f32 = 0.0;
 static mut cam_y: f32 = 0.0;
-static mut last_state: u32 = 0;
 
 static mut button_states: u32 = 0;
 
@@ -37,7 +36,10 @@ fn main() {
 
     // Image Loading
     let grid_texture = texture::Texture::new(String::from("dat/textures/grid.png"));
-    let grid_sprite = sprite::Sprite::new(&grid_texture);
+
+    let mut grid_sprite = sprite::Sprite::new(&grid_texture);
+    grid_sprite.position_x = -(1024.0 / 2.0);
+    grid_sprite.position_y = -(768.0 / 2.0);
 
     while !glfw::window_should_close(main_window).expect("Failed to get window should close status.") {
         ogl::clear_color(

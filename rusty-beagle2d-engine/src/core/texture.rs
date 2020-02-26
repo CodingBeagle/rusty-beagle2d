@@ -11,6 +11,13 @@ pub struct Texture {
 
 impl Texture {
     pub fn new(image_filename: String) -> Texture {
+        // TODO: Decide what you wanna do with image flipping...
+        /*
+        unsafe {
+            stb_image::stb_image::bindgen::stbi_set_flip_vertically_on_load(1);
+        }
+        */
+
         let image_path = path::Path::new(&image_filename);
         let load_result = image::load(image_path);
 
