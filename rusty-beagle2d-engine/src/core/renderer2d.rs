@@ -1,4 +1,5 @@
 use rusty_beagle2d_glfw::ogl;
+use linear_beaglebra::{matrix4x4, vector2};
 use std::mem;
 
 use crate::core::sprite;
@@ -104,11 +105,11 @@ impl Renderer2d {
         let projection_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "projection");
 
         // TODO yo read up on orthographic projections again!
-        let mut orthographic_projection = glm::ortho(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
-        let cam_translate = glm::vec3(self.camera_position_x, self.camera_position_y, 1.0);
-        orthographic_projection = glm::translate(&orthographic_projection, &cam_translate);
+        let mut homemade_orthographic_projection = matrix4x4::Matrix4x4::orthographic(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
+        let homemade_camera_translate = vector2::Vector2::new(self.camera_position_x, self.camera_position_y);
+        homemade_orthographic_projection = homemade_orthographic_projection.translate(homemade_camera_translate);
 
-        ogl::uniform_matrix_4fv(projection_location, 1, false, glm::value_ptr(&orthographic_projection).first().unwrap());
+        ogl::uniform_matrix_4fv(projection_location, 1, false, homemade_orthographic_projection.first());
 
         // Transformation testing
         // TODO yo read up on matrix math again!
