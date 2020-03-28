@@ -54,7 +54,7 @@ fn main() {
             renderer2d.set_camera_position(cam_x, cam_y);
         }
 
-        grid_sprite.angle += 0.1;
+        // grid_sprite.angle += 0.01;
 
         // KEY RIGHT
         if is_key_down(0) {

@@ -113,19 +113,18 @@ impl Renderer2d {
 
         // Transformation testing
         // TODO yo read up on matrix math again!
-        let translate_vector = glm::vec3(sprite.position_x, sprite.position_y, 0.0);
+        let homemade_sprite_translation_matrix = vector2::Vector2::new(sprite.position_x, sprite.position_y);
 
-        let scale_vec = glm::vec3(
-            sprite.texture.get_width() as f32, 
+        let mut homemade_sprite_matrix = matrix4x4::Matrix4x4::identity();
+        homemade_sprite_matrix = homemade_sprite_matrix.translate(homemade_sprite_translation_matrix);
+        homemade_sprite_matrix = homemade_sprite_matrix.rotate(0.0, 0.0, sprite.angle);
+        homemade_sprite_matrix = homemade_sprite_matrix.scale(
+            sprite.texture.get_width() as f32,
             sprite.texture.get_height() as f32,
-            1.0);
+            1.0
+        );
 
-        let mut transform_matrix = glm::Mat4::identity(); // 4x4 matrix with f32 elements.
-        transform_matrix = glm::translate(&transform_matrix, &translate_vector);
-        transform_matrix = glm::rotate(&transform_matrix, Renderer2d::degree_to_radians(sprite.angle), &glm::vec3(0.0, 0.0, 1.0));
-        transform_matrix = glm::scale(&transform_matrix, &scale_vec);
-
-        ogl::uniform_matrix_4fv(transform_location, 1, false, glm::value_ptr(&transform_matrix).first().unwrap());
+        ogl::uniform_matrix_4fv(transform_location, 1, false, homemade_sprite_matrix.first());
 
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
     }
