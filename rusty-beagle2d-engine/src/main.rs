@@ -2,9 +2,7 @@ use rusty_beagle2d_glfw;
 use rusty_beagle2d_glfw::glfw;
 use rusty_beagle2d_glfw::ogl;
 
-// "extern crate" indicates that you want to link against an external library, and brings the top-level
-// crate name into scope.
-extern crate nalgebra_glm as glm;
+use std::time::{Instant, Duration};
 
 mod core;
 use crate::core::texture;
@@ -41,7 +39,36 @@ fn main() {
     grid_sprite.position_x = -(1024.0 / 2.0);
     grid_sprite.position_y = -(768.0 / 2.0);
 
+    // Game loop variables
+    let mut t = Duration::from_millis(0);
+    let dt = Duration::from_millis(1);
+
+    let mut current_time = Instant::now();
+    let mut accumulator = Duration::new(0, 0);
+
     while !glfw::window_should_close(main_window).expect("Failed to get window should close status.") {
+        let new_time = Instant::now();
+        let mut frame_time = new_time - current_time;
+
+        if frame_time > Duration::from_millis(250) {
+            frame_time = Duration::from_millis(250);
+        }
+
+        current_time = new_time;
+        accumulator += frame_time;
+
+        // Physics Subsystem
+        while accumulator >= dt {
+            unsafe {
+                renderer2d.set_camera_position(cam_x, cam_y);
+            }
+
+            integrate(dt.as_secs_f32());
+            t += dt;
+            accumulator -= dt;
+        }
+
+        // Render Loop / Rendering Subsystem
         ogl::clear_color(
             100.0 / 255.0, 
             149.0 / 255.0, 
@@ -49,40 +76,6 @@ fn main() {
             1.0);
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
-
-        unsafe {
-            renderer2d.set_camera_position(cam_x, cam_y);
-        }
-
-        // grid_sprite.angle += 0.01;
-
-        // KEY RIGHT
-        if is_key_down(0) {
-            unsafe {
-                cam_x -= 5.0;
-            }
-        }
-
-        // KEY LEFT
-        if is_key_down(1) {
-            unsafe {
-                cam_x += 5.0;
-            }
-        }
-
-        // KEY UP
-        if is_key_down(2) {
-            unsafe {
-                cam_y += 5.0;
-            }
-        }
-
-        // KEY DOWN
-        if is_key_down(3) {
-            unsafe {
-                cam_y -= 5.0;
-            }
-        }
 
         renderer2d.draw_sprite(&grid_sprite);
 
@@ -94,6 +87,36 @@ fn main() {
     }
 
     glfw::terminate();
+}
+
+fn integrate(dt : f32) {
+    // KEY RIGHT
+    if is_key_down(0) {
+        unsafe {
+            cam_x -= 500.0 * dt;
+        }
+    }
+
+    // KEY LEFT
+    if is_key_down(1) {
+        unsafe {
+            cam_x += 500.0 * dt;
+        }
+    }
+
+    // KEY UP
+    if is_key_down(2) {
+        unsafe {
+            cam_y += 500.0 * dt;
+        }
+    }
+
+    // KEY DOWN
+    if is_key_down(3) {
+        unsafe {
+            cam_y -= 500.0 * dt;
+        }
+    }
 }
 
 fn is_key_down(button_id: i32) -> bool {
