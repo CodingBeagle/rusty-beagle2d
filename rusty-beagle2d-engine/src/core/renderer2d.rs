@@ -1,10 +1,12 @@
+#![allow(private_in_public)]
+
 use rusty_beagle2d_glfw::ogl;
 use linear_beaglebra::{matrix4x4, vector2};
 use std::mem;
 
 use crate::core::sprite;
 use crate::core::shader;
-use crate::core::shader_program;
+use crate::{Character, core::shader_program};
 
 pub struct Renderer2d {
     shader_program: shader_program::ShaderProgram,
@@ -56,11 +58,11 @@ impl Renderer2d {
         let ebo = ogl::gl_gen_buffer();
 
         ogl::gl_bind_buffer(ogl::BufferTarget::ElementArrayBuffer, ebo);
-        ogl::buffer_data(ogl::BufferTarget::ElementArrayBuffer, &mut indices, ogl::Usage::StaticDraw);
+        ogl::buffer_data(ogl::BufferTarget::ElementArrayBuffer, &mut indices, ogl::Usage::DynamicDraw);
 
         let vertex_buffer = ogl::gl_gen_buffer();
         ogl::gl_bind_buffer(ogl::BufferTarget::ArrayBuffer, vertex_buffer);
-        ogl::buffer_data(ogl::BufferTarget::ArrayBuffer, &mut vertices, ogl::Usage::StaticDraw);
+        ogl::buffer_data(ogl::BufferTarget::ArrayBuffer, &mut vertices, ogl::Usage::DynamicDraw);
 
         ogl::vertex_attrib_pointer(
             0, 
@@ -97,12 +99,13 @@ impl Renderer2d {
         }
     }
 
-    pub fn draw_sprite(&self, sprite: &sprite::Sprite) {
+    pub fn draw_sprite(&self, sprite: &sprite::Sprite, character: &Character) {
         // Activate the Sprite's texture for the OpenGl context
         sprite.texture.activate();
 
         let transform_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "transform");
         let projection_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "projection");
+        let is_text = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "isText");
 
         // TODO yo read up on orthographic projections again!
         let mut homemade_orthographic_projection = matrix4x4::Matrix4x4::orthographic(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
@@ -127,6 +130,20 @@ impl Renderer2d {
         ogl::uniform_matrix_4fv(transform_location, 1, false, homemade_sprite_matrix.first());
 
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
+
+        // TEXT TEST DRAW
+        ogl::uniform_1i(is_text, 1);
+
+        let mut text_matrix = matrix4x4::Matrix4x4::identity();
+        text_matrix = text_matrix.scale(character.Size.x * 3.0, character.Size.y * 3.0, 1.0);
+
+        ogl::uniform_matrix_4fv(transform_location, 1, false, text_matrix.first());
+
+        ogl::bind_texture(ogl::TextureTarget::Texture2d, character.TextureId);
+        ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
+        ogl::bind_texture(ogl::TextureTarget::Texture2d, 0);
+
+        ogl::uniform_1i(is_text, 0);
     }
 
     // TODO: Does nalgebra_glm seriously not have this? Gotta look more into this

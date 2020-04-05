@@ -9,6 +9,7 @@ uniform mat4 transform;
 uniform mat4 projection;
 
 void main() {
-    gl_Position = projection * transform * vec4(aPos.x, aPos.y, aPos.z, 1.0);
+    // LEARN: Read up on vector swizzling
+    gl_Position = projection * transform * vec4(aPos.xyz, 1.0);
     TexCoord = aTexCoord;
 }

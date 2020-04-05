@@ -40,7 +40,9 @@ pub enum Capability {
     DebugOutput = gl::DEBUG_OUTPUT
 }
 
+// TODO: Refactor to be convertable from u32 like my newest enum pattern
 pub enum Usage {
+    DynamicDraw,
     StaticDraw
 }
 
@@ -106,12 +108,14 @@ pub enum TextureParameterName {
 // Representable as u32 to make it easy to cast it to C API.
 #[repr(u32)]
 pub enum TextureParameter {
+    ClampToEdge = gl::CLAMP_TO_EDGE,
     Repeat = gl::REPEAT,
     Linear = gl::LINEAR
 }
 
 #[repr(u32)]
 pub enum TextureInternalFormat {
+    Red = gl::RED,
     Rgb = gl::RGB,
     Rgba = gl::RGBA,
     Rgba8 = gl::RGBA8
@@ -119,6 +123,7 @@ pub enum TextureInternalFormat {
 
 #[repr(u32)]
 pub enum TextureFormat {
+    Red = gl::RED,
     Rgb = gl::RGB,
     Rgba = gl::RGBA
 }
@@ -127,6 +132,12 @@ pub enum TextureFormat {
 pub enum BlendFactor {
     SrcAlpha = gl::SRC_ALPHA,
     OneMinusSrcAlpha = gl::ONE_MINUS_SRC_ALPHA
+}
+
+#[repr(u32)]
+pub enum AlignmentParameter {
+    PackAlignment = gl::PACK_ALIGNMENT,
+    UnpackAlignment = gl::UNPACK_ALIGNMENT
 }
 
 // TODO: Give better name
@@ -144,6 +155,18 @@ pub fn init() {
     // Afterwards, you specify the body of the closure with {}. If the closure is a single expression,
     // The curly braces are optional.
     gl::load_with(|s| crate::glfw::get_proc_address(s));
+}
+
+pub fn uniform_1i(location: i32, param: i32) {
+    unsafe {
+        gl::Uniform1i(location, param);
+    }
+}
+
+pub fn pixel_storei(alignmentParameter: AlignmentParameter, parameterValue: i32) {
+    unsafe {
+        gl::PixelStorei(alignmentParameter as u32, parameterValue);
+    }
 }
 
 pub fn enable(capability: Cap) {
@@ -196,6 +219,21 @@ pub fn tex_image_2d<T>(texture_target: TextureTarget, level: i32, internal_forma
         format as u32,
         type_ as u32,
         pixels.as_ptr() as *const c_void);
+    }
+}
+
+// TODO: It appears that in some cases, it's easier to allow passing raw pointers as pixel data, instead of having to convert raw pointers from other libraries to Rust containers, just to convert back again
+pub fn tex_image_2d_from_raw(texture_target: TextureTarget, level: i32, internal_format: TextureInternalFormat, width: i32, height: i32, border: i32, format: TextureFormat, type_: ElementsDataType, pixels: *const c_void) {
+    unsafe {
+        gl::TexImage2D(texture_target as u32,
+        level,
+        internal_format as i32,
+        width,
+        height,
+        border,
+        format as u32,
+        type_ as u32,
+        pixels);
     }
 }
 
@@ -397,7 +435,8 @@ pub fn buffer_data<T>(buffer_target: BufferTarget, data: &Vec<T>, usage: Usage) 
             (mem::size_of::<T>() * data.len()) as isize,
             data.as_ptr() as *const c_void,
             match usage {
-                Usage::StaticDraw => gl::STATIC_DRAW
+                Usage::StaticDraw => gl::STATIC_DRAW,
+                Usage::DynamicDraw => gl::DYNAMIC_DRAW
             }
         )
     }

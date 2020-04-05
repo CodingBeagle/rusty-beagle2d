@@ -1,5 +1,5 @@
 [package]
-name = "rusty-beagle2d-glfw"
+name = "rusty-beagle2d-freetype"
 version = "0.1.0"
 authors = ["CodingBeagle <kasper.rie@gmail.com>"]
 edition = "2018"
@@ -10,5 +10,3 @@ build = "src/build.rs"
 bindgen = "0.53.1"
 
 [dependencies]
-libc = "0.2.0"
-gl = "0.14.0"

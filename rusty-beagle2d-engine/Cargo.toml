@@ -9,5 +9,6 @@ edition = "2018"
 [dependencies]
 stb_image = "0.2.2"
 rusty-beagle2d-glfw = { path = "../rusty-beagle2d-glfw" }
+rusty-beagle2d-freetype = { path = "../rusty-beagle2d-freetype" }
 linear-beaglebra = { path = "../../linear-beaglebra" }
 nalgebra-glm = "0.1"
