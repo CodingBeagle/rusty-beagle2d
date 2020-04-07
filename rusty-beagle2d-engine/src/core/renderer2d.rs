@@ -1,17 +1,22 @@
-#![allow(private_in_public)]
-
 use rusty_beagle2d_glfw::ogl;
-use linear_beaglebra::{matrix4x4, vector2};
+use linear_beaglebra::{matrix4x4, vector2::Vector2};
 use std::mem;
+use std::collections::{HashMap};
 
 use crate::core::sprite;
 use crate::core::shader;
 use crate::{Character, core::shader_program};
 
+use rusty_beagle2d_freetype::freetype;
+
+use std::ffi::{c_void, CString};
+use std::ptr;
+
 pub struct Renderer2d {
     shader_program: shader_program::ShaderProgram,
     camera_position_x: f32,
-    camera_position_y: f32
+    camera_position_y: f32,
+    characters: HashMap<u8, Character>
 }
 
 impl Renderer2d {
@@ -92,14 +97,103 @@ impl Renderer2d {
         let shader_program = shader_program::ShaderProgram::new(vertex_shader, fragment_shader);
         shader_program.activate();
 
+        let mut characters: HashMap<u8, Character> = HashMap::new();
+
+        // FreeType Loading
+        // LEARN: Read up on FreeType in general and the theory behind what it does and why
+        unsafe {
+            // Initialize FreeType
+            let mut ft: freetype::FT_Library = ptr::null_mut();
+
+            let init_result = freetype::FT_Init_FreeType(&mut ft);
+            if init_result != 0 {
+                panic!("Failed to initialize FreeType!");
+            }
+
+            // Initialize face
+            let mut ft_face: freetype::FT_Face = ptr::null_mut();
+
+            let path = CString::new("test-dat/fonts/arial.ttf").expect("Failed to create CString");
+            let ft_face_loading_result = freetype::FT_New_Face(ft, path.as_ptr(), 0, &mut ft_face);
+
+            if ft_face_loading_result != 0 {
+                panic!("Failed to load font!");
+            }
+
+            // Define font size
+            let ft_set_size_result = freetype::FT_Set_Pixel_Sizes(ft_face, 0, 48);
+            if ft_set_size_result != 0 {
+                panic!("Failed to set size of font!");
+            }
+
+            // OpenGl requires that textures all have a 4-byte alignment.
+            // e.g: Their size is always a multiple of 4 bytes.
+            // Normally this won't be a problem since most textures have a width that is a multiple of 4 and/or
+            // use 4 bytes per pixel.
+            // However, since we now only use a single byte per pixel they can have any possible width. By Setting
+            // its unpack alignment equal to 1, we ensure there are no alignment issues (which can cause segmentation faults).
+            ogl::pixel_storei(ogl::AlignmentParameter::UnpackAlignment, 1);
+
+            for x in 0..128 {
+                // Load character glyph
+                let ft_load_char_result = freetype::FT_Load_Char(ft_face, x, freetype::FT_LOAD_RENDER as i32);
+
+                if ft_load_char_result != 0 {
+                    panic!("Failed to load character glyph!");
+                }
+
+                // Generate Texture
+                let texture_id: u32 = ogl::gen_texture();
+                ogl::bind_texture(ogl::TextureTarget::Texture2d, texture_id);
+
+                // LEARN: Read up more on glypgh's and their info in FreeType library
+                let glyph_info = *(*ft_face).glyph;
+                let bitmap_info = glyph_info.bitmap;
+                
+                ogl::tex_image_2d_from_raw(
+                    ogl::TextureTarget::Texture2d,
+                    0,
+                    ogl::TextureInternalFormat::Red,
+                    bitmap_info.width as i32,
+                    bitmap_info.rows as i32, 
+                        0, 
+                        ogl::TextureFormat::Red,
+                        ogl::ElementsDataType::UnsignedByte,  
+                        bitmap_info.buffer as *const c_void);
+
+                // Set texture options
+                ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureWrapS, ogl::TextureParameter::ClampToEdge);
+                ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureWrapT, ogl::TextureParameter::ClampToEdge);
+                ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureMinFilter, ogl::TextureParameter::Linear);
+                ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureMagFilter, ogl::TextureParameter::Linear);
+
+                // Store character for later use
+                // TODO: Now would be a nice time to have generic Vectors in my linear algebra library :) (so I can store as ints intead of f32's)
+                let new_character = Character {
+                    TextureId: texture_id,
+                    Size: Vector2::new(bitmap_info.width as f32, bitmap_info.rows as f32),
+                    Bearing: Vector2::new(glyph_info.bitmap_left as f32, glyph_info.bitmap_top as f32),
+                    Advance: glyph_info.advance.x as u32
+                };
+
+                characters.insert(x as u8, new_character);
+            }
+
+            // Clean up FreeType library and memory
+            // LEARN: Read up more on what these function calls do.
+            freetype::FT_Done_Face(ft_face);
+            freetype::FT_Done_FreeType(ft);
+        }
+
         Renderer2d {
             shader_program: shader_program,
             camera_position_x: 0.0,
-            camera_position_y: 0.0 
+            camera_position_y: 0.0,
+            characters
         }
     }
 
-    pub fn draw_sprite(&self, sprite: &sprite::Sprite, character: &Character) {
+    pub fn draw_sprite(&self, sprite: &sprite::Sprite) {
         // Activate the Sprite's texture for the OpenGl context
         sprite.texture.activate();
 
@@ -109,14 +203,14 @@ impl Renderer2d {
 
         // TODO yo read up on orthographic projections again!
         let mut homemade_orthographic_projection = matrix4x4::Matrix4x4::orthographic(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
-        let homemade_camera_translate = vector2::Vector2::new(self.camera_position_x, self.camera_position_y);
+        let homemade_camera_translate = Vector2::new(self.camera_position_x, self.camera_position_y);
         homemade_orthographic_projection = homemade_orthographic_projection.translate(homemade_camera_translate);
 
         ogl::uniform_matrix_4fv(projection_location, 1, false, homemade_orthographic_projection.first());
 
         // Transformation testing
         // TODO yo read up on matrix math again!
-        let homemade_sprite_translation_matrix = vector2::Vector2::new(sprite.position_x, sprite.position_y);
+        let homemade_sprite_translation_matrix = Vector2::new(sprite.position_x, sprite.position_y);
 
         let mut homemade_sprite_matrix = matrix4x4::Matrix4x4::identity();
         homemade_sprite_matrix = homemade_sprite_matrix.translate(homemade_sprite_translation_matrix);
@@ -132,18 +226,71 @@ impl Renderer2d {
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
 
         // TEXT TEST DRAW
+        /*
+        let special_char = self.characters.get(&81).expect("Failed to find char");
+
         ogl::uniform_1i(is_text, 1);
 
         let mut text_matrix = matrix4x4::Matrix4x4::identity();
-        text_matrix = text_matrix.scale(character.Size.x * 3.0, character.Size.y * 3.0, 1.0);
+        text_matrix = text_matrix.scale(special_char.Size.x, special_char.Size.y, 1.0);
 
         ogl::uniform_matrix_4fv(transform_location, 1, false, text_matrix.first());
 
-        ogl::bind_texture(ogl::TextureTarget::Texture2d, character.TextureId);
+        ogl::bind_texture(ogl::TextureTarget::Texture2d, special_char.TextureId);
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
         ogl::bind_texture(ogl::TextureTarget::Texture2d, 0);
 
         ogl::uniform_1i(is_text, 0);
+        */
+    }
+
+    // LEARN: Difference between String and string slice
+    pub fn draw_text(&self, position: Vector2, text: &str) {
+        let model_matrix_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "transform");
+        let is_text_uniform = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "isText");
+
+        // Enable text rendering in shader
+        ogl::uniform_1i(is_text_uniform, 1);
+
+        // Loop through each character
+        // Find ASCII code for character
+        // Get character from characters array
+        // Place character on baseline based on bearingX, bearingY
+        // Increase pen point to next character using "advance"
+
+        let mut pen_point = position.x as u32;
+
+        // TODO: Simply iterating over bytes in a UTF-8 string is to get ASCII chars is prolly not great...
+        for character in text.bytes() {
+            let character_info = self.characters.get(&character).expect("Failed to retrieve character code!");
+
+            // Calculate font position
+            let character_x_pos = pen_point as f32 + character_info.Bearing.x;
+            let character_y_pos = position.y - character_info.Bearing.y;
+
+            let mut character_matrix = matrix4x4::Matrix4x4::identity();
+            character_matrix = character_matrix.translate(Vector2::new(character_x_pos, character_y_pos));
+            character_matrix = character_matrix.scale(character_info.Size.x, character_info.Size.y, 1.0);
+
+            // Bind character glyph image
+            ogl::bind_texture(ogl::TextureTarget::Texture2d, character_info.TextureId);
+
+            // Set model matrix
+            ogl::uniform_matrix_4fv(model_matrix_location, 1, false, character_matrix.first());
+
+            // Character image draw call
+            ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
+
+            // Unbind character glyph image
+            ogl::bind_texture(ogl::TextureTarget::Texture2d, 0);
+
+            // Advance pen point position
+            // LEARN: Why do you need to bitshift with 6 in FreeType when advancing pen point?
+            pen_point += character_info.Advance >> 6;
+        }
+
+        // Disable text rendering in shader
+        ogl::uniform_1i(is_text_uniform, 0);
     }
 
     // TODO: Does nalgebra_glm seriously not have this? Gotta look more into this

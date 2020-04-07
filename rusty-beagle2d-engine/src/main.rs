@@ -1,7 +1,6 @@
 use rusty_beagle2d_glfw;
 use rusty_beagle2d_glfw::glfw;
 use rusty_beagle2d_glfw::ogl;
-use rusty_beagle2d_freetype::freetype;
 
 use linear_beaglebra::{vector2::Vector2, matrix4x4::Matrix4x4};
 
@@ -16,11 +15,6 @@ static mut cam_x: f32 = 0.0;
 static mut cam_y: f32 = 0.0;
 
 static mut button_states: u32 = 0;
-
-use std::ffi::{c_void, CString};
-use std::ptr;
-
-use std::collections::{HashMap};
 
 struct Character {
     TextureId: u32, // ID Handle of the glyph texture
@@ -53,94 +47,6 @@ fn main() {
     let mut grid_sprite = sprite::Sprite::new(&grid_texture);
     grid_sprite.position_x = -(1024.0 / 2.0);
     grid_sprite.position_y = -(768.0 / 2.0);
-
-    let mut characters: HashMap<u8, Character> = HashMap::new();
-
-    // FreeType Testing
-    // LEARN: Read up on FreeType in general and the theory behind what it does and why
-    unsafe {
-        // Initialize FreeType
-        let mut ft: freetype::FT_Library = ptr::null_mut();
-
-        let init_result = freetype::FT_Init_FreeType(&mut ft);
-        if init_result != 0 {
-            panic!("Failed to initialize FreeType!");
-        }
-
-        // Initialize face
-        let mut ft_face: freetype::FT_Face = ptr::null_mut();
-
-        let path = CString::new("test-dat/fonts/arial.ttf").expect("Failed to create CString");
-        let ft_face_loading_result = freetype::FT_New_Face(ft, path.as_ptr(), 0, &mut ft_face);
-
-        if ft_face_loading_result != 0 {
-            panic!("Failed to load font!");
-        }
-
-        // Define font size
-        let ft_set_size_result = freetype::FT_Set_Pixel_Sizes(ft_face, 0, 48);
-        if ft_set_size_result != 0 {
-            panic!("Failed to set size of font!");
-        }
-
-        // OpenGl requires that textures all have a 4-byte alignment.
-        // e.g: Their size is always a multiple of 4 bytes.
-        // Normally this won't be a problem since most textures have a width that is a multiple of 4 and/or
-        // use 4 bytes per pixel.
-        // However, since we now only use a single byte per pixel they can have any possible width. By Setting
-        // its unpack alignment equal to 1, we ensure there are no alignment issues (which can cause segmentation faults).
-        ogl::pixel_storei(ogl::AlignmentParameter::UnpackAlignment, 1);
-
-        for x in 0..128 {
-            // Load character glyph
-            let ft_load_char_result = freetype::FT_Load_Char(ft_face, x, freetype::FT_LOAD_RENDER as i32);
-
-            if ft_load_char_result != 0 {
-                panic!("Failed to load character glyph!");
-            }
-
-            // Generate Texture
-            let texture_id: u32 = ogl::gen_texture();
-            ogl::bind_texture(ogl::TextureTarget::Texture2d, texture_id);
-
-            // LEARN: Read up more on glypgh's and their info in FreeType library
-            let glyph_info = *(*ft_face).glyph;
-            let bitmap_info = glyph_info.bitmap;
-            
-            ogl::tex_image_2d_from_raw(
-                ogl::TextureTarget::Texture2d,
-                0,
-                ogl::TextureInternalFormat::Red,
-                bitmap_info.width as i32,
-                bitmap_info.rows as i32, 
-                 0, 
-                 ogl::TextureFormat::Red,
-                 ogl::ElementsDataType::UnsignedByte,  
-                 bitmap_info.buffer as *const c_void);
-
-            // Set texture options
-            ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureWrapS, ogl::TextureParameter::ClampToEdge);
-            ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureWrapT, ogl::TextureParameter::ClampToEdge);
-            ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureMinFilter, ogl::TextureParameter::Linear);
-            ogl::tex_parameteri(ogl::TextureTarget::Texture2d, ogl::TextureParameterName::TextureMagFilter, ogl::TextureParameter::Linear);
-
-            // Store character for later use
-            // TODO: Now would be a nice time to have generic Vectors in my linear algebra library :) (so I can store as ints intead of f32's)
-            let new_character = Character {
-                TextureId: texture_id,
-                Size: Vector2::new(bitmap_info.width as f32, bitmap_info.rows as f32),
-                Bearing: Vector2::new(glyph_info.bitmap_left as f32, glyph_info.bitmap_top as f32),
-                Advance: glyph_info.advance.x as u32
-            };
-
-            characters.insert(x as u8, new_character);
-        }
-
-        // Clean up FreeType library and memory
-        // LEARN: Read up more on what these function calls do.
-        freetype::FT_Done_Face(ft_face);
-        freetype::FT_Done_FreeType(ft);
-    }
 
     // Game loop variables
     let mut t = Duration::from_millis(0);
@@ -194,10 +100,9 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
-        // Draw Text Test
-        let special_char = characters.get(&81).expect("Failed to find char");
+        renderer2d.draw_text(Vector2::new(0.0, 50.0), "Hello, World! gg ez");
 
-        renderer2d.draw_sprite(&grid_sprite, special_char);
+        renderer2d.draw_sprite(&grid_sprite);
 
         glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
     }
