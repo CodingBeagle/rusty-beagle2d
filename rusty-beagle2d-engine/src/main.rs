@@ -16,13 +16,6 @@ static mut cam_y: f32 = 0.0;
 
 static mut button_states: u32 = 0;
 
-struct Character {
-    TextureId: u32, // ID Handle of the glyph texture
-    Size: Vector2, // Size of glyph
-    Bearing: Vector2, // Offset from baseline to left/top of glyph
-    Advance: u32 // Offset to advance to next glyph
-}
-
 fn main() {
     glfw::init().expect("Failed to initialize GLFW!");
 
@@ -100,7 +93,8 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
-        renderer2d.draw_text(Vector2::new(0.0, 50.0), "Hello, World! gg ez");
+        renderer2d.draw_text(Vector2::new(0.0, 0.0), "Hello, World! gg ez");
+        renderer2d.draw_text(Vector2::new(150.0, 150.0), "Is this sweet or WHAT!? :D");
 
         renderer2d.draw_sprite(&grid_sprite);
 

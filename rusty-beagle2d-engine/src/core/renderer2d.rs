@@ -5,12 +5,20 @@ use std::collections::{HashMap};
 
 use crate::core::sprite;
 use crate::core::shader;
-use crate::{Character, core::shader_program};
+use crate::{core::shader_program};
 
 use rusty_beagle2d_freetype::freetype;
 
 use std::ffi::{c_void, CString};
 use std::ptr;
+
+struct Character {
+    TextureId: u32, // ID Handle of the glyph texture
+    Size: Vector2, // Size of glyph
+    Bearing: Vector2, // Offset from baseline to left/top of glyph
+    Advance: u32, // Offset to advance to next glyph
+    MaxHeight: u32
+}
 
 pub struct Renderer2d {
     shader_program: shader_program::ShaderProgram,
@@ -173,7 +181,9 @@ impl Renderer2d {
                     TextureId: texture_id,
                     Size: Vector2::new(bitmap_info.width as f32, bitmap_info.rows as f32),
                     Bearing: Vector2::new(glyph_info.bitmap_left as f32, glyph_info.bitmap_top as f32),
-                    Advance: glyph_info.advance.x as u32
+                    Advance: glyph_info.advance.x as u32,
+                    // LEARN: What is "font units" in FreeType???
+                    MaxHeight: ((*ft_face).height >> 6) as u32 // The vertical distance between two consecutive baseline, expressed in font units.
                 };
 
                 characters.insert(x as u8, new_character);
@@ -199,7 +209,6 @@ impl Renderer2d {
 
         let transform_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "transform");
         let projection_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "projection");
-        let is_text = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "isText");
 
         // TODO yo read up on orthographic projections again!
         let mut homemade_orthographic_projection = matrix4x4::Matrix4x4::orthographic(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
@@ -224,24 +233,6 @@ impl Renderer2d {
         ogl::uniform_matrix_4fv(transform_location, 1, false, homemade_sprite_matrix.first());
 
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
-
-        // TEXT TEST DRAW
-        /*
-        let special_char = self.characters.get(&81).expect("Failed to find char");
-
-        ogl::uniform_1i(is_text, 1);
-
-        let mut text_matrix = matrix4x4::Matrix4x4::identity();
-        text_matrix = text_matrix.scale(special_char.Size.x, special_char.Size.y, 1.0);
-
-        ogl::uniform_matrix_4fv(transform_location, 1, false, text_matrix.first());
-
-        ogl::bind_texture(ogl::TextureTarget::Texture2d, special_char.TextureId);
-        ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
-        ogl::bind_texture(ogl::TextureTarget::Texture2d, 0);
-
-        ogl::uniform_1i(is_text, 0);
-        */
     }
 
     // LEARN: Difference between String and string slice
@@ -252,12 +243,6 @@ impl Renderer2d {
         // Enable text rendering in shader
         ogl::uniform_1i(is_text_uniform, 1);
 
-        // Loop through each character
-        // Find ASCII code for character
-        // Get character from characters array
-        // Place character on baseline based on bearingX, bearingY
-        // Increase pen point to next character using "advance"
-
         let mut pen_point = position.x as u32;
 
         // TODO: Simply iterating over bytes in a UTF-8 string is to get ASCII chars is prolly not great...
@@ -266,8 +251,11 @@ impl Renderer2d {
 
             // Calculate font position
             let character_x_pos = pen_point as f32 + character_info.Bearing.x;
-            let character_y_pos = position.y - character_info.Bearing.y;
 
+            // TODO: Perhaps there's a nicer way of making sure that pos (0, 0) will be a string nicely printed at the top left corner of the screen....
+            // Right now I simply align each character nicely with the origin and then offset each character by what is 1 line height...
+            let character_y_pos = (position.y - character_info.Bearing.y) + (character_info.MaxHeight as f32);
+            
             let mut character_matrix = matrix4x4::Matrix4x4::identity();
             character_matrix = character_matrix.translate(Vector2::new(character_x_pos, character_y_pos));
             character_matrix = character_matrix.scale(character_info.Size.x, character_info.Size.y, 1.0);
