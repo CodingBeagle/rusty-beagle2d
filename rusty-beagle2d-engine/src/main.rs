@@ -96,7 +96,7 @@ fn main() {
         renderer2d.draw_text(Vector2::new(0.0, 0.0), "Hello, World! gg ez");
         renderer2d.draw_text(Vector2::new(150.0, 150.0), "Is this sweet or WHAT!? :D");
 
-        renderer2d.draw_sprite(&grid_sprite);
+        // renderer2d.draw_sprite(&grid_sprite);
 
         glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
     }

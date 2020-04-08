@@ -129,7 +129,7 @@ impl Renderer2d {
             }
 
             // Define font size
-            let ft_set_size_result = freetype::FT_Set_Pixel_Sizes(ft_face, 0, 48);
+            let ft_set_size_result = freetype::FT_Set_Pixel_Sizes(ft_face, 0, 128);
             if ft_set_size_result != 0 {
                 panic!("Failed to set size of font!");
             }
@@ -237,28 +237,39 @@ impl Renderer2d {
 
     // LEARN: Difference between String and string slice
     pub fn draw_text(&self, position: Vector2, text: &str) {
+        // Get Uniform Locations
+        let projection_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "projection");
         let model_matrix_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "transform");
         let is_text_uniform = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "isText");
+
+        // Orthographic Projection
+        let mut homemade_orthographic_projection = matrix4x4::Matrix4x4::orthographic(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
+        let homemade_camera_translate = Vector2::new(self.camera_position_x, self.camera_position_y);
+        homemade_orthographic_projection = homemade_orthographic_projection.translate(homemade_camera_translate);
+
+        ogl::uniform_matrix_4fv(projection_location, 1, false, homemade_orthographic_projection.first());
 
         // Enable text rendering in shader
         ogl::uniform_1i(is_text_uniform, 1);
 
-        let mut pen_point = position.x as u32;
+        let mut pen_point = position.x;
+
+        let scale: f32 = 0.25;
 
         // TODO: Simply iterating over bytes in a UTF-8 string is to get ASCII chars is prolly not great...
         for character in text.bytes() {
             let character_info = self.characters.get(&character).expect("Failed to retrieve character code!");
 
             // Calculate font position
-            let character_x_pos = pen_point as f32 + character_info.Bearing.x;
+            let character_x_pos = pen_point as f32 + (character_info.Bearing.x * (scale as f32));
 
             // TODO: Perhaps there's a nicer way of making sure that pos (0, 0) will be a string nicely printed at the top left corner of the screen....
             // Right now I simply align each character nicely with the origin and then offset each character by what is 1 line height...
-            let character_y_pos = (position.y - character_info.Bearing.y) + (character_info.MaxHeight as f32);
+            let character_y_pos = (position.y - character_info.Bearing.y * (scale as f32)) + ((character_info.MaxHeight * (scale as u32)) as f32);
             
             let mut character_matrix = matrix4x4::Matrix4x4::identity();
             character_matrix = character_matrix.translate(Vector2::new(character_x_pos, character_y_pos));
-            character_matrix = character_matrix.scale(character_info.Size.x, character_info.Size.y, 1.0);
+            character_matrix = character_matrix.scale(character_info.Size.x * scale as f32, character_info.Size.y * scale as f32, 1.0);
 
             // Bind character glyph image
             ogl::bind_texture(ogl::TextureTarget::Texture2d, character_info.TextureId);
@@ -274,7 +285,7 @@ impl Renderer2d {
 
             // Advance pen point position
             // LEARN: Why do you need to bitshift with 6 in FreeType when advancing pen point?
-            pen_point += character_info.Advance >> 6;
+            pen_point += ((character_info.Advance >> 6) as f32) * scale;
         }
 
         // Disable text rendering in shader
