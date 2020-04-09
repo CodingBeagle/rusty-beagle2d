@@ -35,11 +35,9 @@ fn main() {
     let mut renderer2d = renderer2d::Renderer2d::new();
 
     // Image Loading
-    let grid_texture = texture::Texture::new(String::from("dat/textures/grid.png"));
-
-    let mut grid_sprite = sprite::Sprite::new(&grid_texture);
-    grid_sprite.position_x = -(1024.0 / 2.0);
-    grid_sprite.position_y = -(768.0 / 2.0);
+    let text_atlas = texture::Texture::new( String::from("test-dat/fonts/bitmap-fonts/simple-text-atlas.png"));
+    let mut text_sprite = sprite::Sprite::new(&text_atlas);
+    text_sprite.set_render_view(36.0, 0.0, 39.0, 46.0);
 
     // Game loop variables
     let mut t = Duration::from_millis(0);
@@ -93,10 +91,7 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
-        renderer2d.draw_text(Vector2::new(0.0, 0.0), "Hello, World! gg ez");
-        renderer2d.draw_text(Vector2::new(150.0, 150.0), "Is this sweet or WHAT!? :D");
-
-        // renderer2d.draw_sprite(&grid_sprite);
+        renderer2d.draw_sprite(&text_sprite);
 
         glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
     }

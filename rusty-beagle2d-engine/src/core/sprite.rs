@@ -10,6 +10,10 @@ use crate::core::texture;
 pub struct Sprite<'a> {
     pub position_x: f32,
     pub position_y: f32,
+    pub texture_x: f32,
+    pub texture_y: f32,
+    pub texture_width: f32,
+    pub texture_height: f32,
     pub angle: f32,
     pub uniform_scale: f32,
     pub texture: &'a texture::Texture
@@ -26,9 +30,20 @@ impl<'a> Sprite<'a> {
         Sprite { 
             position_x: 0.0,
             position_y: 0.0,
+            texture_x: 0.0,
+            texture_y: 0.0,
+            texture_width: sprite_texture.get_width() as f32,
+            texture_height: sprite_texture.get_height() as f32,
             angle: 0.0,
             uniform_scale: 1.0,
             texture: sprite_texture
         }
+    }
+
+    pub fn set_render_view(&mut self, x: f32, y: f32, width: f32, height: f32) {
+        self.texture_x = x;
+        self.texture_y = y;
+        self.texture_width = width;
+        self.texture_height = height;
     }
 }

@@ -157,6 +157,18 @@ pub fn init() {
     gl::load_with(|s| crate::glfw::get_proc_address(s));
 }
 
+pub fn uniform4fv(location: i32, count: i32, value: &f32) {
+    unsafe {
+        gl::Uniform4fv(location, count, value);
+    }
+}
+
+pub fn uniform2fv(location: i32, count: i32, value: &f32) {
+    unsafe {
+        gl::Uniform2fv(location, count, value);
+    }
+}
+
 pub fn uniform_1i(location: i32, param: i32) {
     unsafe {
         gl::Uniform1i(location, param);
