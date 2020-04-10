@@ -1,5 +1,7 @@
 use crate::core::texture;
 
+use std::boxed::{Box};
+
 // LEARN Lifetime types in Structs
 // The "texture" field of Sprite is a reference to an already existing Texture instance
 // That exists in another part of the program.
@@ -7,7 +9,7 @@ use crate::core::texture;
 // parameter, that can be used by the Rust borrow checker to validate that an instance of a
 // Sprite does not outlive the Texture it references. It if did, we could hit a case of having
 // A dangling reference to a texture no longer existing in the program.
-pub struct Sprite<'a> {
+pub struct Sprite {
     pub position_x: f32,
     pub position_y: f32,
     pub texture_x: f32,
@@ -16,7 +18,7 @@ pub struct Sprite<'a> {
     pub texture_height: f32,
     pub angle: f32,
     pub uniform_scale: f32,
-    pub texture: &'a texture::Texture
+    pub texture: Box<texture::Texture> // LEARN: Read up on Rust Box's
 }
 
 // LEARN: Lifetime annotations in Method Definitions
@@ -25,8 +27,8 @@ pub struct Sprite<'a> {
 // Lifetime names for struct fields always need to be declared after the "impl"
 // keyword and then used after the struct's name, because those lifetimes are part of
 // the struct's type.
-impl<'a> Sprite<'a> {
-    pub fn new(sprite_texture: &'a texture::Texture) -> Sprite<'a> {
+impl Sprite {
+    pub fn new(sprite_texture: Box<texture::Texture>) -> Sprite {
         Sprite { 
             position_x: 0.0,
             position_y: 0.0,

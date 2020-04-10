@@ -7,13 +7,19 @@ use crate::core::sprite;
 use crate::core::shader;
 use crate::{core::shader_program};
 
-use rusty_beagle2d_freetype::freetype;
+use crate::core::texture;
+
+use std::boxed;
+
+use std::fs::{File};
+use std::path::{Path};
 
 use std::ffi::{c_void, CString};
 use std::ptr;
 
 struct Character {
-    TextureId: u32, // ID Handle of the glyph texture
+    TextureId: u32, // ID Handle of the glyph texture,
+    TexturePosition: Vector2,
     Size: Vector2, // Size of glyph
     Bearing: Vector2, // Offset from baseline to left/top of glyph
     Advance: u32, // Offset to advance to next glyph
@@ -23,7 +29,9 @@ struct Character {
 pub struct Renderer2d {
     shader_program: shader_program::ShaderProgram,
     camera_position_x: f32,
-    camera_position_y: f32
+    camera_position_y: f32,
+    text_sprite_atlas: sprite::Sprite,
+    character_info: HashMap<u8, Character>
 }
 
 impl Renderer2d {
@@ -104,11 +112,63 @@ impl Renderer2d {
         let shader_program = shader_program::ShaderProgram::new(vertex_shader, fragment_shader);
         shader_program.activate();
 
+        // Font Texture Setup
+        let text_atlas = std::boxed::Box::new(texture::Texture::new(String::from("test-dat/fonts/bitmap-fonts/verdana.png")));
+
+        // LEARN: Read up on Rust iterators
+        let mut characters: HashMap<u8, Character> = HashMap::new();
+
+        let character_atlas_info = std::fs::read_to_string(Path::new("test-dat/fonts/bitmap-fonts/verdana.fnt"))
+            .expect("Failed to load character atlas info");
+
+        let line_iterator: Vec<&str> = character_atlas_info.lines().collect();
+
+        let max_height_line: Vec<&str> = line_iterator[1]
+            .split_whitespace()
+            .skip(1)
+            .collect();
+
+        let max_height = Renderer2d::parse_value(max_height_line[0]);
+
+        for character_line in &line_iterator[4..line_iterator.len()-1] {
+            let line_words: Vec<&str> = character_line
+                .split_whitespace()
+                .skip(1)
+                .collect();
+
+            let character_id = Renderer2d::parse_value(line_words[0]);
+            let character_texture_position_x = Renderer2d::parse_value(line_words[1]);
+            let character_texture_position_y = Renderer2d::parse_value(line_words[2]);
+            let character_width = Renderer2d::parse_value(line_words[3]);
+            let character_height = Renderer2d::parse_value(line_words[4]);
+            let character_x_offset = Renderer2d::parse_value(line_words[5]);
+            let character_y_offset = Renderer2d::parse_value(line_words[6]);
+            let character_x_advance = Renderer2d::parse_value(line_words[7]);
+
+            characters.insert(character_id as u8, Character {
+                TextureId: text_atlas.get_opengl_texture_id(),
+                TexturePosition: Vector2::new(character_texture_position_x as f32, character_texture_position_y as f32),
+                Size: Vector2::new(character_width as f32, character_height as f32),
+                Bearing: Vector2::new(character_x_offset as f32, character_y_offset as f32),
+                Advance: character_x_advance as u32,
+                MaxHeight: max_height as u32
+            });
+        }
+
+        let text_sprite = sprite::Sprite::new(text_atlas);
+
         Renderer2d {
             shader_program: shader_program,
             camera_position_x: 0.0,
-            camera_position_y: 0.0
+            camera_position_y: 0.0,
+            text_sprite_atlas: text_sprite,
+            character_info: characters
         }
+    }
+
+    fn parse_value(value_pair: &str) -> i32 {
+        let split_values: Vec<&str> = value_pair.rsplit('=').collect();
+        i32::from_str_radix(split_values[0], 10).expect("Failed to parse value.")
     }
 
     pub fn draw_sprite(&self, sprite: &sprite::Sprite) {
@@ -147,6 +207,76 @@ impl Renderer2d {
         ogl::uniform_matrix_4fv(transform_location, 1, false, homemade_sprite_matrix.first());
 
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
+    }
+
+    pub fn draw_text(&mut self, text: &str, position: Vector2, scale: f32) {
+        self.text_sprite_atlas.texture.activate();
+
+        // Get shader uniforms
+        let transform_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "transform");
+        let projection_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "projection");
+        let texture_bounding_box_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "bounding_box");
+
+        // Text render variables
+        let mut pen_point = position;
+
+        for my_char in text.bytes() {
+            let current_character = self.character_info.get(&my_char).expect("Failed to find character.");
+
+            self.text_sprite_atlas.position_x = pen_point.x + current_character.Bearing.x;
+            self.text_sprite_atlas.position_y = pen_point.y + current_character.Bearing.y;
+
+            self.text_sprite_atlas.set_render_view(
+                current_character.TexturePosition.x, 
+                current_character.TexturePosition.y, 
+                current_character.Size.x, 
+                current_character.Size.y);
+
+            // Set texture bounding box
+            // TODO: Make vector 4 in linear-beaglebra
+            let bounding_box_array = [
+                current_character.TexturePosition.x,
+                current_character.TexturePosition.y, 
+                current_character.Size.x, 
+                current_character.Size.y];
+            
+            ogl::uniform4fv(
+                texture_bounding_box_location,
+                1,
+                bounding_box_array.first().expect("Failed to read bounding box values"));
+
+            // TODO yo read up on orthographic projections again!
+            let mut homemade_orthographic_projection = matrix4x4::Matrix4x4::orthographic(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
+            let homemade_camera_translate = Vector2::new(self.camera_position_x, self.camera_position_y);
+            homemade_orthographic_projection = homemade_orthographic_projection.translate(homemade_camera_translate);
+
+            ogl::uniform_matrix_4fv(projection_location, 1, false, homemade_orthographic_projection.first());
+
+            // Transformation testing
+            // TODO yo read up on matrix math again!
+            let homemade_sprite_translation_matrix = 
+                Vector2::new(
+                    self.text_sprite_atlas.position_x, 
+                    self.text_sprite_atlas.position_y);
+
+            let mut homemade_sprite_matrix = matrix4x4::Matrix4x4::identity();
+            homemade_sprite_matrix = homemade_sprite_matrix.translate(homemade_sprite_translation_matrix);
+            homemade_sprite_matrix = homemade_sprite_matrix.rotate(0.0, 0.0, self.text_sprite_atlas.angle);
+            homemade_sprite_matrix = homemade_sprite_matrix.scale(
+                self.text_sprite_atlas.texture_width as f32,
+                self.text_sprite_atlas.texture_height as f32,
+                1.0
+            );
+
+            ogl::uniform_matrix_4fv(transform_location, 1, false, homemade_sprite_matrix.first());
+
+            ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
+
+            pen_point.x += current_character.Advance as f32;
+        }
+
+        // Unbind font texture atlas
+        ogl::bind_texture(ogl::TextureTarget::Texture2d, 0);
     }
 
     // TODO: Does nalgebra_glm seriously not have this? Gotta look more into this

@@ -67,6 +67,10 @@ impl Texture {
         self.depth
     }
 
+    pub fn get_opengl_texture_id(&self) -> u32 {
+        self.opengl_object_id
+    }
+
     pub fn activate(&self) {
         ogl::bind_texture(ogl::TextureTarget::Texture2d, self.opengl_object_id);
     }

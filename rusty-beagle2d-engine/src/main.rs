@@ -34,11 +34,6 @@ fn main() {
 
     let mut renderer2d = renderer2d::Renderer2d::new();
 
-    // Image Loading
-    let text_atlas = texture::Texture::new( String::from("test-dat/fonts/bitmap-fonts/simple-text-atlas.png"));
-    let mut text_sprite = sprite::Sprite::new(&text_atlas);
-    text_sprite.set_render_view(36.0, 0.0, 39.0, 46.0);
-
     // Game loop variables
     let mut t = Duration::from_millis(0);
     let dt = Duration::from_millis(1);
@@ -91,7 +86,13 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
-        renderer2d.draw_sprite(&text_sprite);
+        renderer2d.draw_text("Hello, World! :D", 
+            Vector2::new(0.0, 0.0), 
+            1.0);
+
+        renderer2d.draw_text("And another line!", 
+            Vector2::new(0.0, 61.0), 
+            1.0);
 
         glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
     }
