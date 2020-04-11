@@ -41,6 +41,13 @@ fn main() {
     let mut current_time = Instant::now();
     let mut accumulator = Duration::new(0, 0);
 
+    let mut fps = 0.0;
+    let mut frame_counter = 0.0;
+    let mut passed_time = Duration::from_millis(0);
+
+    // Disable v-sync
+    glfw::swap_interval(0);
+
     // A game look typically consists of multiple different subsystems that needs "servicing" at different rates.
     // For example, rendering the scene and updating the game's physics state need not be done in synchronization, and most
     // Often is actually not.
@@ -52,6 +59,10 @@ fn main() {
     while !glfw::window_should_close(main_window).expect("Failed to get window should close status.") {
         let new_time = Instant::now();
         let mut frame_time = new_time - current_time;
+
+        passed_time += frame_time;
+
+        fps = frame_counter / (passed_time.as_millis() as f64 / 1000.0);
 
         // TODO: Figure out why this is done
         if frame_time > Duration::from_millis(250) {
@@ -86,15 +97,11 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
-        renderer2d.draw_text("Hello, there!", 
-            Vector2::new(0.0, 0.0), 
-            1.0);
-
-        renderer2d.draw_text("Shit!! :D", Vector2::new(0.0, 61.0), 3.0);
-
-        renderer2d.draw_text("ALEEX", Vector2::new(20.0, 128.0), 7.0);
+        renderer2d.draw_text(&format!("FPS: {:.3}", fps)[..], Vector2::new(0.0, 0.0), 2.0);
 
         glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
+
+        frame_counter += 1.0;
     }
 
     glfw::terminate();

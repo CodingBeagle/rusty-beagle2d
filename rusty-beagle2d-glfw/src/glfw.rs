@@ -41,8 +41,6 @@ pub enum WindowHintValue {
     OpenGlCoreProfile = GLFW_OPENGL_CORE_PROFILE,
 }
 
-
-
 // LEARN - Result<(), ...>
 // In Rust, "()" is the "void" type, also called the Unit type.
 // For Results, this is the idiomatic way to indicate a function in which
@@ -55,6 +53,12 @@ pub fn init() -> Result<(), String> {
         } else {
             Err(String::from("Failed to initialize GLFW."))
         }
+    }
+}
+
+pub fn swap_interval(interval: i32) {
+    unsafe {
+        glfwSwapInterval(interval);
     }
 }
 

@@ -259,7 +259,7 @@ impl Renderer2d {
             let bounding_box_array = [
                 current_character.TexturePosition.x,
                 current_character.TexturePosition.y, 
-                current_character.Size.x, 
+                current_character.Size.x,
                 current_character.Size.y];
             
             ogl::uniform4fv(
