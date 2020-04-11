@@ -86,13 +86,13 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
-        renderer2d.draw_text("Hello, World! :D", 
+        renderer2d.draw_text("Hello, there!", 
             Vector2::new(0.0, 0.0), 
             1.0);
 
-        renderer2d.draw_text("And another line!", 
-            Vector2::new(0.0, 61.0), 
-            1.0);
+        renderer2d.draw_text("Shit!! :D", Vector2::new(0.0, 61.0), 3.0);
+
+        renderer2d.draw_text("ALEEX", Vector2::new(20.0, 128.0), 7.0);
 
         glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
     }

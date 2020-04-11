@@ -11,6 +11,9 @@ uniform vec3 textColor;
 
 uniform vec4 bounding_box;
 
+const float width = 0.49;
+const float edge = 0.041;
+
 void main()
 {
     if (!isText) {
@@ -23,7 +26,17 @@ void main()
 
         FragColor = texture(ourTexture, new_scale);
     } else {
-        vec4 sampled = vec4(1.0, 1.0, 1.0, texture(ourTexture, TexCoord).r);
-        FragColor = vec4(textColor, 1.0) * sampled;
+        vec2 textureDimensions = textureSize(ourTexture, 0);
+
+        float x_scale = (bounding_box.x / textureDimensions.x) + (TexCoord.x * (bounding_box.z / textureDimensions.x));
+        float y_scale = (bounding_box.y / textureDimensions.y) + TexCoord.y * (bounding_box.w / textureDimensions.y);
+
+        vec2 new_scale = vec2(x_scale, y_scale);
+
+        float distance = 1.0 - texture(ourTexture, new_scale).a;
+
+        float alpha_v = 1.0 - smoothstep(width, width + edge, distance);
+
+        FragColor = vec4(0.0, 0.0, 0.0, alpha_v);
     }
 }
