@@ -19,9 +19,9 @@ use std::ptr;
 
 struct Character {
     TextureId: u32, // ID Handle of the glyph texture,
-    TexturePosition: Vector2,
-    Size: Vector2, // Size of glyph
-    Bearing: Vector2, // Offset from baseline to left/top of glyph
+    TexturePosition: Vector2<i32>,
+    Size: Vector2<i32>, // Size of glyph
+    Bearing: Vector2<i32>, // Offset from baseline to left/top of glyph
     Advance: u32, // Offset to advance to next glyph
     MaxHeight: u32
 }
@@ -160,9 +160,9 @@ impl Renderer2d {
 
             characters.insert(character_id as u8, Character {
                 TextureId: text_atlas.get_opengl_texture_id(),
-                TexturePosition: Vector2::new(character_texture_position_x as f32, character_texture_position_y as f32),
-                Size: Vector2::new(character_width as f32, character_height as f32),
-                Bearing: Vector2::new(character_x_offset as f32, character_y_offset as f32),
+                TexturePosition: Vector2::<i32>::new(character_texture_position_x, character_texture_position_y),
+                Size: Vector2::<i32>::new(character_width, character_height),
+                Bearing: Vector2::<i32>::new(character_x_offset, character_y_offset),
                 Advance: character_x_advance as u32,
                 MaxHeight: max_height as u32
             });
@@ -193,20 +193,19 @@ impl Renderer2d {
         let texture_bounding_box_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "bounding_box");
 
         // Set texture bounding box
-        // TODO: Make vector 4 in linear-beaglebra
         let bounding_box_array = [sprite.texture_x, sprite.texture_y, sprite.texture_width, sprite.texture_height];
         ogl::uniform4fv(texture_bounding_box_location, 1, bounding_box_array.first().expect("Failed to read bounding box values"));
 
         // TODO yo read up on orthographic projections again!
         let mut homemade_orthographic_projection = matrix4x4::Matrix4x4::orthographic(0.0, 1024.0, 768.0, 0.0, -1.0, 1.0);
-        let homemade_camera_translate = Vector2::new(self.camera_position_x, self.camera_position_y);
+        let homemade_camera_translate = Vector2::<f32>::new(self.camera_position_x, self.camera_position_y);
         homemade_orthographic_projection = homemade_orthographic_projection.translate(homemade_camera_translate);
 
         ogl::uniform_matrix_4fv(projection_location, 1, false, homemade_orthographic_projection.first());
 
         // Transformation testing
         // TODO yo read up on matrix math again!
-        let homemade_sprite_translation_matrix = Vector2::new(sprite.position_x, sprite.position_y);
+        let homemade_sprite_translation_matrix = Vector2::<f32>::new(sprite.position_x, sprite.position_y);
 
         let mut homemade_sprite_matrix = matrix4x4::Matrix4x4::identity();
         homemade_sprite_matrix = homemade_sprite_matrix.translate(homemade_sprite_translation_matrix);
@@ -222,7 +221,7 @@ impl Renderer2d {
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
     }
 
-    pub fn draw_text(&mut self, text: &str, position: Vector2, scale: f32) {
+    pub fn draw_text(&mut self, text: &str, position: Vector2<f32>, scale: f32) {
         // Check if string is purely ASCII
         if text.is_ascii() == false {
             panic!("The provided text is not ASCII!");
@@ -245,22 +244,21 @@ impl Renderer2d {
         for my_char in text.bytes() {
             let current_character = self.character_info.get(&my_char).expect("Failed to find character.");
 
-            self.text_sprite_atlas.position_x = pen_point.x + ((current_character.Bearing.x) * scale);
-            self.text_sprite_atlas.position_y = pen_point.y + ((current_character.Bearing.y) * scale);
+            self.text_sprite_atlas.position_x = pen_point.x + ((current_character.Bearing.x as f32 * scale));
+            self.text_sprite_atlas.position_y = pen_point.y + ((current_character.Bearing.y as f32 * scale));
 
             self.text_sprite_atlas.set_render_view(
-                current_character.TexturePosition.x, 
-                current_character.TexturePosition.y, 
-                current_character.Size.x, 
-                current_character.Size.y);
+                current_character.TexturePosition.x as f32, 
+                current_character.TexturePosition.y as f32, 
+                current_character.Size.x as f32, 
+                current_character.Size.y as f32);
 
             // Set texture bounding box
-            // TODO: Make vector 4 in linear-beaglebra
-            let bounding_box_array = [
-                current_character.TexturePosition.x,
-                current_character.TexturePosition.y, 
-                current_character.Size.x,
-                current_character.Size.y];
+            let bounding_box_array: [f32; 4] = [
+                current_character.TexturePosition.x as f32,
+                current_character.TexturePosition.y as f32, 
+                current_character.Size.x as f32,
+                current_character.Size.y as f32];
             
             ogl::uniform4fv(
                 texture_bounding_box_location,
@@ -302,11 +300,6 @@ impl Renderer2d {
 
         // Unbind font texture atlas
         ogl::bind_texture(ogl::TextureTarget::Texture2d, 0);
-    }
-
-    // TODO: Does nalgebra_glm seriously not have this? Gotta look more into this
-    fn degree_to_radians(degrees: f32) -> f32 {
-        (std::f32::consts::PI / 180.0) * degrees
     }
 }
 

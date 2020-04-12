@@ -97,7 +97,7 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
-        renderer2d.draw_text(&format!("FPS: {:.3}", fps)[..], Vector2::new(0.0, 0.0), 2.0);
+        renderer2d.draw_text(&format!("FPS: {:.3}", fps)[..], Vector2::new(0.0, 0.0), 1.0);
 
         glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
 
