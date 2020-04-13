@@ -1,7 +1,5 @@
 use crate::core::texture;
 
-use std::boxed::{Box};
-
 // LEARN Lifetime types in Structs
 // The "texture" field of Sprite is a reference to an already existing Texture instance
 // That exists in another part of the program.
