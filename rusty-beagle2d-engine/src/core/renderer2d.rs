@@ -1,37 +1,19 @@
 use rusty_beagle2d_glfw::ogl;
 use linear_beaglebra::{matrix4x4, vector2::Vector2};
 use std::mem;
-use std::collections::{HashMap};
 
 use crate::core::sprite;
 use crate::core::shader;
 use crate::{core::shader_program};
 
-use crate::core::texture;
-
-use std::boxed;
-
-use std::fs::{File};
 use std::path::{Path};
 
-use std::ffi::{c_void, CString};
-use std::ptr;
-
-struct Character {
-    TextureId: u32, // ID Handle of the glyph texture,
-    TexturePosition: Vector2<i32>,
-    Size: Vector2<i32>, // Size of glyph
-    Bearing: Vector2<i32>, // Offset from baseline to left/top of glyph
-    Advance: u32, // Offset to advance to next glyph
-    MaxHeight: u32
-}
+use crate::core::font::{Font, Character};
 
 pub struct Renderer2d {
     shader_program: shader_program::ShaderProgram,
     camera_position_x: f32,
-    camera_position_y: f32,
-    text_sprite_atlas: sprite::Sprite,
-    character_info: HashMap<u8, Character>
+    camera_position_y: f32
 }
 
 impl Renderer2d {
@@ -112,70 +94,10 @@ impl Renderer2d {
         let shader_program = shader_program::ShaderProgram::new(vertex_shader, fragment_shader);
         shader_program.activate();
 
-        // Font Texture Setup
-        let text_atlas = std::boxed::Box::new(texture::Texture::new(String::from("test-dat/fonts/bitmap-fonts/verdana-signed.png")));
-
-        // LEARN: Read up on Rust iterators
-        let mut characters: HashMap<u8, Character> = HashMap::new();
-
-        let character_atlas_info = std::fs::read_to_string(Path::new("test-dat/fonts/bitmap-fonts/verdana-signed.fnt"))
-            .expect("Failed to load character atlas info");
-
-        let line_iterator: Vec<&str> = character_atlas_info.lines().collect();
-
-        let max_height_line: Vec<&str> = line_iterator[1]
-            .split_whitespace()
-            .skip(1)
-            .collect();
-
-        let max_height = Renderer2d::parse_value(max_height_line[0]);
-
-        // TODO: When using Hiero to export .fnt, padding is encoded oddly...
-        // Left padding is subtracted from the original xoffset value, so you have to add padding to xoffset to value you need for text rendering
-        // Left + Right Padding is added to xadvance, so these have to be subtracted from xadvance to get the value you need for text rendering
-        // Up padding is substracted from yoffset value, so you have to add it back to get original yoffset value. 
-        let padding_line: Vec<&str> = line_iterator[0].split_whitespace().collect();
-        let padding_text: Vec<&str> = padding_line[11].rsplit('=').collect();
-        let padding_values: Vec<&str> = padding_text[0].split(',').collect();
-        
-        let padding_up = i32::from_str_radix( padding_values[0], 10).expect("Failed to convert padding to int value.");
-        let padding_right = i32::from_str_radix( padding_values[1], 10).expect("Failed to convert padding to int value.");
-        let padding_down = i32::from_str_radix( padding_values[2], 10).expect("Failed to convert padding to int value.");
-        let padding_left = i32::from_str_radix( padding_values[3], 10).expect("Failed to convert padding to int value.");
-
-        for character_line in &line_iterator[4..line_iterator.len()-1] {
-            let line_words: Vec<&str> = character_line
-                .split_whitespace()
-                .skip(1)
-                .collect();
-
-            let character_id = Renderer2d::parse_value(line_words[0]);
-            let character_texture_position_x = Renderer2d::parse_value(line_words[1]);
-            let character_texture_position_y = Renderer2d::parse_value(line_words[2]);
-            let character_width = Renderer2d::parse_value(line_words[3]);
-            let character_height = Renderer2d::parse_value(line_words[4]);
-            let character_x_offset = Renderer2d::parse_value(line_words[5]) + padding_left;
-            let character_y_offset = Renderer2d::parse_value(line_words[6]);
-            let character_x_advance = Renderer2d::parse_value(line_words[7]) - (padding_left + padding_right);
-
-            characters.insert(character_id as u8, Character {
-                TextureId: text_atlas.get_opengl_texture_id(),
-                TexturePosition: Vector2::<i32>::new(character_texture_position_x, character_texture_position_y),
-                Size: Vector2::<i32>::new(character_width, character_height),
-                Bearing: Vector2::<i32>::new(character_x_offset, character_y_offset),
-                Advance: character_x_advance as u32,
-                MaxHeight: max_height as u32
-            });
-        }
-
-        let text_sprite = sprite::Sprite::new(text_atlas);
-
         Renderer2d {
             shader_program: shader_program,
             camera_position_x: 0.0,
-            camera_position_y: 0.0,
-            text_sprite_atlas: text_sprite,
-            character_info: characters
+            camera_position_y: 0.0
         }
     }
 
@@ -221,13 +143,14 @@ impl Renderer2d {
         ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
     }
 
-    pub fn draw_text(&mut self, text: &str, position: Vector2<f32>, scale: f32) {
+    pub fn draw_text(&mut self, font: &Font, text: &str, position: Vector2<f32>, scale: f32) {
         // Check if string is purely ASCII
         if text.is_ascii() == false {
             panic!("The provided text is not ASCII!");
         }
 
-        self.text_sprite_atlas.texture.activate();
+        // Activate texture atlas
+        font.get_texture_atlas().activate();
 
         // Get shader uniforms
         let transform_location = ogl::get_uniform_location(self.shader_program.get_opengl_object_id(), "transform");
@@ -241,24 +164,27 @@ impl Renderer2d {
         // Text render variables
         let mut pen_point = position;
 
-        for my_char in text.bytes() {
-            let current_character = self.character_info.get(&my_char).expect("Failed to find character.");
+        // Character sprite
+        let mut character_sprite = sprite::Sprite::new(font.get_texture_atlas());
 
-            self.text_sprite_atlas.position_x = pen_point.x + ((current_character.Bearing.x as f32 * scale));
-            self.text_sprite_atlas.position_y = pen_point.y + ((current_character.Bearing.y as f32 * scale));
+        for my_char in text.chars() {
+            let current_character = font.get_character(my_char);
 
-            self.text_sprite_atlas.set_render_view(
-                current_character.TexturePosition.x as f32, 
-                current_character.TexturePosition.y as f32, 
-                current_character.Size.x as f32, 
-                current_character.Size.y as f32);
+            character_sprite.position_x = pen_point.x + ((current_character.get_bearing().x as f32 * scale));
+            character_sprite.position_y = pen_point.y + ((current_character.get_bearing().y as f32 * scale));
+
+            character_sprite.set_render_view(
+                current_character.get_font_texture_atlas_position().x as f32, 
+                current_character.get_font_texture_atlas_position().y as f32, 
+                current_character.get_font_texture_atlas_size().x as f32, 
+                current_character.get_font_texture_atlas_size().y as f32);
 
             // Set texture bounding box
             let bounding_box_array: [f32; 4] = [
-                current_character.TexturePosition.x as f32,
-                current_character.TexturePosition.y as f32, 
-                current_character.Size.x as f32,
-                current_character.Size.y as f32];
+                current_character.get_font_texture_atlas_position().x as f32, 
+                current_character.get_font_texture_atlas_position().y as f32, 
+                current_character.get_font_texture_atlas_size().x as f32, 
+                current_character.get_font_texture_atlas_size().y as f32];
             
             ogl::uniform4fv(
                 texture_bounding_box_location,
@@ -276,15 +202,15 @@ impl Renderer2d {
             // TODO yo read up on matrix math again!
             let homemade_sprite_translation_matrix = 
                 Vector2::new(
-                    self.text_sprite_atlas.position_x, 
-                    self.text_sprite_atlas.position_y);
+                    character_sprite.position_x, 
+                    character_sprite.position_y);
 
             let mut homemade_sprite_matrix = matrix4x4::Matrix4x4::identity();
             homemade_sprite_matrix = homemade_sprite_matrix.translate(homemade_sprite_translation_matrix);
-            homemade_sprite_matrix = homemade_sprite_matrix.rotate(0.0, 0.0, self.text_sprite_atlas.angle);
+            homemade_sprite_matrix = homemade_sprite_matrix.rotate(0.0, 0.0, character_sprite.angle);
             homemade_sprite_matrix = homemade_sprite_matrix.scale(
-                self.text_sprite_atlas.texture_width as f32 * scale,
-                self.text_sprite_atlas.texture_height as f32 * scale,
+                character_sprite.texture_width as f32 * scale,
+                character_sprite.texture_height as f32 * scale,
                 1.0
             );
 
@@ -292,7 +218,7 @@ impl Renderer2d {
 
             ogl::draw_elements(ogl::DrawMode::Triangles, 6, ogl::ElementsDataType::UnsignedInt);
 
-            pen_point.x += (current_character.Advance as f32) * scale;
+            pen_point.x += (current_character.get_advance() as f32) * scale;
         }
 
         // Disable font rendering in fragment shader

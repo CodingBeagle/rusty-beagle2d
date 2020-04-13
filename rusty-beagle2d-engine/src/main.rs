@@ -51,6 +51,10 @@ fn main() {
 
     let verdana_font = Font::new("test-dat/fonts/bitmap-fonts/verdana-signed.fnt");
 
+    let h_character = verdana_font.get_character('h');
+    
+    println!("{}", h_character.get_advance());
+
     // A game look typically consists of multiple different subsystems that needs "servicing" at different rates.
     // For example, rendering the scene and updating the game's physics state need not be done in synchronization, and most
     // Often is actually not.
@@ -100,7 +104,7 @@ fn main() {
 
         ogl::clear(ogl::ClearMask::ColorBufferBit);
 
-        renderer2d.draw_text(&format!("FPS: {:.3}", fps)[..], Vector2::new(0.0, 0.0), 1.0);
+        renderer2d.draw_text(&verdana_font, &format!("FPS: {:.3}", fps)[..], Vector2::<f32>::new(0.0, 0.0), 1.0);
 
         glfw::swap_buffers(main_window).expect("Failed to swap buffers for window!");
 

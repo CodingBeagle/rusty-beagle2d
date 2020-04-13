@@ -45,12 +45,12 @@ impl Character {
 pub struct Font {
     texture: Texture,
     line_spacing: u32,
-    characters: HashMap<u8, Character>
+    characters: HashMap<char, Character>
 }
 
 impl Font {
     pub fn new(bmfont_file_path: &str) -> Self {
-        let mut characters: HashMap<u8, Character> = HashMap::new();
+        let mut characters: HashMap<char, Character> = HashMap::new();
 
         // TODO: Do proper error handling!
         let bmfont_file_path = Path::new(bmfont_file_path);
@@ -90,7 +90,8 @@ impl Font {
                                                             .skip(1)
                                                             .collect();
 
-            let character_ascii_code = Font::parse_value(character_line_key_value_pairs[0]);
+            // TODO: Should have parse_value as generic...
+            let character_ascii_code = Font::parse_value(character_line_key_value_pairs[0]) as u8;
             let font_texture_atlas_position_x = Font::parse_value(character_line_key_value_pairs[1]);
             let font_texture_atlas_position_y = Font::parse_value(character_line_key_value_pairs[2]);
             let font_texture_atlas_size_width = Font::parse_value(character_line_key_value_pairs[3]);
@@ -99,12 +100,12 @@ impl Font {
             let bearing_y = Font::parse_value(character_line_key_value_pairs[6]);
             let advance = Font::parse_value(character_line_key_value_pairs[7]) - (padding_left + padding_right);
 
-            characters.insert(character_ascii_code as u8, Character {
-                font_texture_atlas_position: Vector2::<i32>::new(font_texture_atlas_position_x, font_texture_atlas_position_y),
-                font_texture_atlas_size: Vector2::<i32>::new(font_texture_atlas_size_width, font_texture_atlas_size_height),
-                bearing: Vector2::<i32>::new(bearing_x, bearing_y),
+            characters.insert(character_ascii_code as char, Character::new (
+                Vector2::<i32>::new(font_texture_atlas_position_x, font_texture_atlas_position_y),
+                Vector2::<i32>::new(font_texture_atlas_size_width, font_texture_atlas_size_height),
+                Vector2::<i32>::new(bearing_x, bearing_y),
                 advance
-            });
+            ));
         }
 
         // Create OpenGL texture for font atlas
@@ -123,7 +124,16 @@ impl Font {
         }
     }
 
-    pub fn get_opengl_texture_atlas_id(&self) -> &Texture {
+    pub fn get_character(&self, ascii_code: char) -> &Character {
+        if ascii_code.is_ascii() == false {
+            panic!("Provided ascii code is not an ascii character!")
+        }
+
+        // TODO: Do proper error handling!!!
+        self.characters.get(&ascii_code).expect("Failed to retrieve character from ascii code.")
+    }
+
+    pub fn get_texture_atlas(&self) -> &Texture {
         &self.texture
     }
 
