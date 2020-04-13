@@ -10,6 +10,7 @@ pub struct Texture {
 }
 
 impl Texture {
+    // TODO: Should take Path instead of String...
     pub fn new(image_filename: String) -> Texture {
         // TODO: Decide what you wanna do with image flipping...
         /*

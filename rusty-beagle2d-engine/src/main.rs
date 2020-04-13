@@ -10,6 +10,7 @@ mod core;
 use crate::core::texture;
 use crate::core::renderer2d;
 use crate::core::sprite;
+use crate::core::font::{Font};
 
 static mut cam_x: f32 = 0.0;
 static mut cam_y: f32 = 0.0;
@@ -47,6 +48,8 @@ fn main() {
 
     // Disable v-sync
     glfw::swap_interval(0);
+
+    let verdana_font = Font::new("test-dat/fonts/bitmap-fonts/verdana-signed.fnt");
 
     // A game look typically consists of multiple different subsystems that needs "servicing" at different rates.
     // For example, rendering the scene and updating the game's physics state need not be done in synchronization, and most
